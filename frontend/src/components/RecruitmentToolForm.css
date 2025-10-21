@@ -1,0 +1,149 @@
+.recruitment-tool {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, sans-serif;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 40px;
+  }
+  
+  section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+  }
+  
+  h2 {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  input[type='text'],
+  input[type='email'],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  
+  input[type='text']:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  }
+  
+  textarea {
+    resize: vertical;
+    line-height: 1.5;
+  }
+  
+  button {
+    padding: 12px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-generate {
+    background-color: #007bff;
+    color: white;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .btn-generate:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  
+  .btn-generate:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .btn-save-template {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .btn-save-template:hover {
+    background-color: #218838;
+  }
+  
+  .btn-copy {
+    background-color: #6c757d;
+    color: white;
+    margin-top: 15px;
+  }
+  
+  .btn-copy:hover {
+    background-color: #5a6268;
+  }
+  
+  .action-buttons {
+    text-align: center;
+    margin: 30px 0;
+  }
+  
+  .generated-result {
+    background-color: #e7f3ff;
+    border: 2px solid #007bff;
+  }
+  
+  .result-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+  }
+  
+  .result-box p {
+    line-height: 1.8;
+    color: #333;
+    margin: 0 0 15px 0;
+  }
+
+  .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-cancel:hover {
+    background-color: #c82333;
+  }
