@@ -129,37 +129,32 @@ export default function JobTypesPage() {
         {jobTypes.length === 0 ? (
           <p>職業適性がまだ登録されていません</p>
         ) : (
-          <table className="job-types-table">
-            <thead>
-              <tr>
-                <th>職種名</th>
-                <th>定義</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobTypes.map((jobType) => (
-                <tr key={jobType.id}>
-                  <td className="cell-name">{jobType.name}</td>
-                  <td className="cell-definition">{jobType.definition}</td>
-                  <td className="cell-actions">
-                    <button
-                      onClick={() => handleEditClick(jobType)}
-                      className="btn-edit"
-                    >
-                      編集
-                    </button>
-                    <button
-                      onClick={() => handleDelete(jobType.id)}
-                      className="btn-delete"
-                    >
-                      削除
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="job-types-grid">
+            <div className="grid-header">職種名</div>
+            <div className="grid-header">定義</div>
+            <div className="grid-header">操作</div>
+
+            {jobTypes.map((jobType) => (
+              <React.Fragment key={jobType.id}>
+                <div className="grid-cell">{jobType.name}</div>
+                <div className="grid-cell">{jobType.definition}</div>
+                <div className="grid-cell grid-actions">
+                  <button
+                    onClick={() => handleEditClick(jobType)}
+                    className="btn-edit"
+                  >
+                    編集
+                  </button>
+                  <button
+                    onClick={() => handleDelete(jobType.id)}
+                    className="btn-delete"
+                  >
+                    削除
+                  </button>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
         )}
       </div>
     </div>
