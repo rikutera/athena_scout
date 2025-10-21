@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/RecruitmentToolForm.css';
 
@@ -6,6 +7,7 @@ export default function RecruitmentToolForm() {
   // フォーム状態
   const [companyId] = useState('company_001');
   const [templateName, setTemplateName] = useState('');
+  const [editingTemplateId, setEditingTemplateId] = useState(null);
   const [jobType, setJobType] = useState('');
   const [industry, setIndustry] = useState('');
   const [companyRequirement, setCompanyRequirement] = useState('');
@@ -15,7 +17,9 @@ export default function RecruitmentToolForm() {
   // 保存済みテンプレート
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [editingTemplateId, setEditingTemplateId] = useState(null);
+
+  // 職種リスト
+  const [jobTypes, setJobTypes] = useState([]);
 
   // 生成結果
   const [generatedComment, setGeneratedComment] = useState('');
@@ -24,6 +28,7 @@ export default function RecruitmentToolForm() {
   // 初期ロード
   useEffect(() => {
     fetchTemplates();
+    fetchJobTypes();
   }, []);
 
   // 保存済みテンプレート一覧取得
@@ -38,8 +43,18 @@ export default function RecruitmentToolForm() {
     }
   };
 
-// テンプレート選択時に値を埋める
-const handleSelectTemplate = async (templateId) => {
+  // 職種一覧取得
+  const fetchJobTypes = async () => {
+    try {
+      const response = await axios.get('/api/job-types');
+      setJobTypes(response.data);
+    } catch (error) {
+      console.error('Error fetching job types:', error);
+    }
+  };
+
+  // テンプレート選択時に値を埋める
+  const handleSelectTemplate = async (templateId) => {
     try {
       const response = await axios.get(`/api/templates/${templateId}`);
       const template = response.data;
@@ -55,13 +70,13 @@ const handleSelectTemplate = async (templateId) => {
     }
   };
 
-// テンプレート保存（新規作成 or 更新）
-const handleSaveTemplate = async () => {
+  // テンプレート保存（新規作成 or 更新）
+  const handleSaveTemplate = async () => {
     if (!templateName.trim()) {
       alert('テンプレート名を入力してください');
       return;
     }
-  
+
     try {
       if (editingTemplateId) {
         // 既存テンプレート更新
@@ -93,7 +108,7 @@ const handleSaveTemplate = async () => {
   };
 
   // 編集をキャンセル
-const handleCancelEdit = () => {
+  const handleCancelEdit = () => {
     setEditingTemplateId(null);
     setTemplateName('');
     setSelectedTemplate(null);
@@ -136,7 +151,13 @@ const handleCancelEdit = () => {
 
   return (
     <div className="recruitment-tool">
-      <h1>採用評価コメント生成ツール</h1>
+      <h1>オファーメッセージ生成</h1>
+
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <Link to="/job-types" className="btn-nav">
+          職業適性を管理
+        </Link>
+      </div>
 
       {/* 保存済みテンプレート選択 */}
       <section className="saved-templates">
@@ -172,12 +193,11 @@ const handleCancelEdit = () => {
           <label>職種 *</label>
           <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
             <option value="">選択してください</option>
-            <option value="営業職">営業職</option>
-            <option value="サービス職">サービス職</option>
-            <option value="企画職">企画職</option>
-            <option value="事務職">事務職</option>
-            <option value="技術職">技術職</option>
-            <option value="研究職">研究職</option>
+            {jobTypes.map((jobType) => (
+              <option key={jobType.id} value={jobType.name}>
+                {jobType.name}
+              </option>
+            ))}
           </select>
         </div>
 
