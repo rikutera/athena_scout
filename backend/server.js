@@ -129,31 +129,102 @@ app.delete('/api/templates/:id', async (req, res) => {
   }
 });
 
+// ========== 職業適性管理 ==========
+
+// 職業適性一覧取得
+app.get('/api/job-types', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, definition FROM job_types ORDER BY created_at ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching job types:', error);
+    res.status(500).json({ error: 'Failed to fetch job types' });
+  }
+});
+
+// 職業適性作成
+app.post('/api/job-types', async (req, res) => {
+  try {
+    const { name, definition } = req.body;
+
+    if (!name || !definition) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO job_types (name, definition) VALUES ($1, $2) RETURNING id',
+      [name, definition]
+    );
+
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (error) {
+    console.error('Error creating job type:', error);
+    res.status(500).json({ error: 'Failed to create job type' });
+  }
+});
+
+// 職業適性更新
+app.put('/api/job-types/:id', async (req, res) => {
+  try {
+    const { name, definition } = req.body;
+
+    const result = await pool.query(
+      'UPDATE job_types SET name = $1, definition = $2, updated_at = NOW() WHERE id = $3 RETURNING id',
+      [name, definition, req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Job type not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating job type:', error);
+    res.status(500).json({ error: 'Failed to update job type' });
+  }
+});
+
+// 職業適性削除
+app.delete('/api/job-types/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM job_types WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting job type:', error);
+    res.status(500).json({ error: 'Failed to delete job type' });
+  }
+});
+
 // ========== コメント生成 ==========
 
-// プロンプト組立関数
-function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile) {
-  const jobDefinitions = {
-    '営業職': '相手の懐に臆さず飛び込み、多くの人との関係の輪を広げていく',
-    'サービス職': 'その場の状況や相手に応じて臨機応変に対応し、相手の期待に応えていく',
-    '企画職': '自ら現場に問いを投げ、何が求められているのかを考え抜き、必要な施策を起案する',
-    '事務職': '物事を曖昧なままにすることなく、細かなことも素早く着実に推進する',
-    '技術職': '物事を極める集中力に長け、向上心を持って新たなスキルや知識を磨き続ける',
-    '研究職': '一つの物事を継続的に考え抜くと共に、様々な角度から見つめられる視野の広さを持つ',
-  };
+// プロンプト組立関数（非同期）
+async function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile) {
+  try {
+    // DBから全職種定義を取得
+    const result = await pool.query(
+      'SELECT name, definition FROM job_types ORDER BY created_at ASC'
+    );
+    
+    // 職種定義を辞書形式に変換
+    const jobDefinitions = {};
+    result.rows.forEach(row => {
+      jobDefinitions[row.name] = row.definition;
+    });
 
-  const jobDefinition = jobDefinitions[jobType] || '';
+    const jobDefinition = jobDefinitions[jobType] || '';
 
-  const systemPrompt = `あなたは就職活動のための企業からの評価コメント生成アシスタントです。
+    // 職種定義の一覧を文字列で作成
+    const jobDefinitionsText = result.rows
+      .map(row => `${row.name}：${row.definition}`)
+      .join('\n');
+
+    const systemPrompt = `あなたは就職活動のための企業からの評価コメント生成アシスタントです。
 以下のルールに厳密に従ってください：
 
 【職種適性の定義】
-営業職：相手の懐に臆さず飛び込み、多くの人との関係の輪を広げていく
-サービス職：その場の状況や相手に応じて臨機応変に対応し、相手の期待に応えていく
-企画職：自ら現場に問いを投げ、何が求められているのかを考え抜き、必要な施策を起案する
-事務職：物事を曖昧なままにすることなく、細かなことも素早く着実に推進する
-技術職：物事を極める集中力に長け、向上心を持って新たなスキルや知識を磨き続ける
-研究職：一つの物事を継続的に考え抜くと共に、様々な角度から見つめられる視野の広さを持つ
+${jobDefinitionsText}
 
 【指定職種】
 ${jobType}：${jobDefinition}
@@ -167,7 +238,7 @@ ${jobType}：${jobDefinition}
 - エピソードが1つのみの場合は「※一つのエピソードで作成」と明記する
 - プロフィールに具体的なエピソードがない場合は、学部・志望職種・志望業種・資格・スキルから思考特性や学習意欲を抽出する`;
 
-  const userMessage = `
+    const userMessage = `
 【職種】${jobType}
 【業種】${industry}
 【企業が望むこと】${companyRequirement}
@@ -178,7 +249,11 @@ ${studentProfile}
 
 上記の学生のプロフィール情報を基に、指定職種の特性に合致するエピソードを優先的に抽出し、テンプレートの【】内部分を作成してください。`;
 
-  return { systemPrompt, userMessage };
+    return { systemPrompt, userMessage };
+  } catch (error) {
+    console.error('Error building prompt:', error);
+    throw error;
+  }
 }
 
 // コメント生成エンドポイント
@@ -196,8 +271,8 @@ app.post('/api/generate', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // プロンプト組立
-    const { systemPrompt, userMessage } = buildPrompt(
+// プロンプト組立
+const { systemPrompt, userMessage } = await buildPrompt(
       job_type,
       industry,
       company_requirement,
