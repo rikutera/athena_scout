@@ -1,0 +1,299 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import apiClient from '../utils/apiClient';
+import '../styles/UserManagement.css';
+
+export default function UserManagementPage() {
+  const [users, setUsers] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    passwordConfirm: '',
+    user_status: 'active',
+    user_role: 'user',
+  });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await apiClient.get('/api/users');
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('ユーザー一覧の取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddNew = () => {
+    setEditingUser(null);
+    setFormData({
+      username: '',
+      password: '',
+      passwordConfirm: '',
+      user_status: 'active',
+      user_role: 'user',
+    });
+    setError('');
+    setMessage('');
+    setShowAddForm(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (!formData.username.trim()) {
+      setError('ユーザー名を入力してください');
+      return;
+    }
+
+    if (!editingUser && !formData.password) {
+      setError('パスワードを入力してください');
+      return;
+    }
+
+    if (formData.password && formData.password !== formData.passwordConfirm) {
+      setError('パスワードが一致しません');
+      return;
+    }
+
+    if (formData.password && formData.password.length < 6) {
+      setError('パスワードは6文字以上である必要があります');
+      return;
+    }
+
+    try {
+      if (editingUser) {
+        // ユーザー更新
+        const updateData = {
+          username: formData.username,
+          user_status: formData.user_status,
+          user_role: formData.user_role,
+        };
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+        await apiClient.put(`/api/users/${editingUser.id}`, updateData);
+        setMessage('ユーザー情報を更新しました');
+      } else {
+        // 新規ユーザー作成
+        await apiClient.post('/api/users', {
+          username: formData.username,
+          password: formData.password,
+          user_status: formData.user_status,
+          user_role: formData.user_role,
+        });
+        setMessage('ユーザーを追加しました');
+      }
+
+      fetchUsers();
+      handleCancel();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      setError(error.response?.data?.error || 'ユーザーの保存に失敗しました');
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setFormData({
+      username: user.username,
+      password: '',
+      passwordConfirm: '',
+      user_status: user.user_status,
+      user_role: user.user_role,
+    });
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (userId, username) => {
+    if (!window.confirm(`ユーザー「${username}」を削除してもよろしいですか？`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/users/${userId}`);
+      setMessage('ユーザーを削除しました');
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setError(error.response?.data?.error || 'ユーザーの削除に失敗しました');
+    }
+  };
+
+  const handleCancel = () => {
+    setShowAddForm(false);
+    setEditingUser(null);
+    setFormData({
+      username: '',
+      password: '',
+      passwordConfirm: '',
+      user_status: 'active',
+      user_role: 'user',
+    });
+    setError('');
+  };
+
+  if (loading) {
+    return <div className="user-management"><p>読み込み中...</p></div>;
+  }
+
+  return (
+    <div className="user-management">
+      <div className="page-header">
+        <h1>ユーザー管理</h1>
+        <Link to="/" className="btn-back">
+          ← ホームに戻る
+        </Link>
+      </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
+
+      {!showAddForm ? (
+        <>
+          <div className="action-bar">
+            <button onClick={handleAddNew} className="btn-add">
+              + 新規ユーザー追加
+            </button>
+          </div>
+
+          <div className="users-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ユーザー名</th>
+                  <th>ステータス</th>
+                  <th>ロール</th>
+                  <th>登録日時</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>{user.username}</td>
+                    <td>
+                      <span className={`status-badge ${user.user_status}`}>
+                        {user.user_status === 'active' ? 'アクティブ' : '無効'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`role-badge ${user.user_role}`}>
+                        {user.user_role === 'admin' ? '管理者' : 'ユーザー'}
+                      </span>
+                    </td>
+                    <td>{new Date(user.created_at).toLocaleString('ja-JP')}</td>
+                    <td>
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="btn-edit-small"
+                      >
+                        編集
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id, user.username)}
+                        className="btn-delete-small"
+                      >
+                        削除
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <div className="user-form">
+          <h2>{editingUser ? 'ユーザー編集' : '新規ユーザー追加'}</h2>
+          <form onSubmit={handleSubmit} autoComplete="off">
+            <div className="form-group">
+              <label>ユーザー名 *</label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                placeholder="ユーザー名"
+                autoComplete="off"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                パスワード {editingUser ? '（変更しない場合は空白）' : '*'}
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="パスワード（6文字以上）"
+                autoComplete="new-password"
+                required={!editingUser}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>パスワード確認 {!editingUser && '*'}</label>
+              <input
+                type="password"
+                value={formData.passwordConfirm}
+                onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
+                placeholder="パスワード（確認）"
+                autoComplete="new-password"
+                required={!editingUser}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>ユーザーステータス *</label>
+              <select
+                value={formData.user_status}
+                onChange={(e) => setFormData({ ...formData, user_status: e.target.value })}
+                required
+              >
+                <option value="active">アクティブ</option>
+                <option value="inactive">無効</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>ユーザーロール *</label>
+              <select
+                value={formData.user_role}
+                onChange={(e) => setFormData({ ...formData, user_role: e.target.value })}
+                required
+              >
+                <option value="user">ユーザー</option>
+                <option value="admin">管理者</option>
+              </select>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn-save">
+                {editingUser ? '更新' : '追加'}
+              </button>
+              <button type="button" onClick={handleCancel} className="btn-cancel">
+                キャンセル
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}

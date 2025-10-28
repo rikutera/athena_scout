@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../utils/apiClient';
 import '../styles/JobTypesPage.css';
 
 export default function JobTypesPage() {
@@ -15,7 +15,7 @@ export default function JobTypesPage() {
 
   const fetchJobTypes = async () => {
     try {
-      const response = await axios.get('/api/job-types');
+      const response = await apiClient.get('/api/job-types');
       setJobTypes(response.data);
     } catch (error) {
       console.error('Error fetching job types:', error);
@@ -42,10 +42,10 @@ export default function JobTypesPage() {
 
     try {
       if (editingId) {
-        await axios.put(`/api/job-types/${editingId}`, formData);
+        await apiClient.put(`/api/job-types/${editingId}`, formData);
         alert('職業適性を更新しました');
       } else {
-        await axios.post('/api/job-types', formData);
+        await apiClient.post('/api/job-types', formData);
         alert('職業適性を追加しました');
       }
       fetchJobTypes();
@@ -61,7 +61,7 @@ export default function JobTypesPage() {
   const handleDelete = async (id) => {
     if (window.confirm('本当に削除しますか？')) {
       try {
-        await axios.delete(`/api/job-types/${id}`);
+        await apiClient.delete(`/api/job-types/${id}`);
         alert('職業適性を削除しました');
         fetchJobTypes();
       } catch (error) {

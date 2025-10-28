@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../utils/apiClient';
 import '../styles/RecruitmentToolForm.css';
 
 export default function RecruitmentToolForm() {
@@ -12,6 +12,7 @@ export default function RecruitmentToolForm() {
   const [industry, setIndustry] = useState('');
   const [companyRequirement, setCompanyRequirement] = useState('');
   const [offerTemplate, setOfferTemplate] = useState('');
+  const [outputRuleId, setOutputRuleId] = useState('');
   const [studentProfile, setStudentProfile] = useState('');
 
   // 保存済みテンプレート
@@ -21,6 +22,9 @@ export default function RecruitmentToolForm() {
   // 職種リスト
   const [jobTypes, setJobTypes] = useState([]);
 
+  // 出力ルールリスト
+  const [outputRules, setOutputRules] = useState([]);
+
   // 生成結果
   const [generatedComment, setGeneratedComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,12 +33,13 @@ export default function RecruitmentToolForm() {
   useEffect(() => {
     fetchTemplates();
     fetchJobTypes();
+    fetchOutputRules();
   }, []);
 
   // 保存済みテンプレート一覧取得
   const fetchTemplates = async () => {
     try {
-      const response = await axios.get('/api/templates', {
+      const response = await apiClient.get('/api/templates', {
         params: { company_id: companyId },
       });
       setSavedTemplates(response.data);
@@ -46,17 +51,31 @@ export default function RecruitmentToolForm() {
   // 職種一覧取得
   const fetchJobTypes = async () => {
     try {
-      const response = await axios.get('/api/job-types');
+      const response = await apiClient.get('/api/job-types');
       setJobTypes(response.data);
     } catch (error) {
       console.error('Error fetching job types:', error);
     }
   };
 
+  // 出力ルール一覧取得
+  const fetchOutputRules = async () => {
+    try {
+      const response = await apiClient.get('/api/output-rules');
+      setOutputRules(response.data);
+      // デフォルトルールを選択（最初のルール）
+      if (response.data.length > 0) {
+        setOutputRuleId(response.data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching output rules:', error);
+    }
+  };
+
   // テンプレート選択時に値を埋める
   const handleSelectTemplate = async (templateId) => {
     try {
-      const response = await axios.get(`/api/templates/${templateId}`);
+      const response = await apiClient.get(`/api/templates/${templateId}`);
       const template = response.data;
       setSelectedTemplate(templateId);
       setEditingTemplateId(templateId);
@@ -65,6 +84,7 @@ export default function RecruitmentToolForm() {
       setIndustry(template.industry);
       setCompanyRequirement(template.company_requirement);
       setOfferTemplate(template.offer_template);
+      setOutputRuleId(template.output_rule_id || outputRules[0]?.id || '');
     } catch (error) {
       console.error('Error loading template:', error);
     }
@@ -77,25 +97,32 @@ export default function RecruitmentToolForm() {
       return;
     }
 
+    if (!outputRuleId) {
+      alert('出力ルールを選択してください');
+      return;
+    }
+
     try {
       if (editingTemplateId) {
         // 既存テンプレート更新
-        await axios.put(`/api/templates/${editingTemplateId}`, {
+        await apiClient.put(`/api/templates/${editingTemplateId}`, {
           job_type: jobType,
           industry: industry,
           company_requirement: companyRequirement,
           offer_template: offerTemplate,
+          output_rule_id: outputRuleId,
         });
         alert('テンプレートを更新しました');
       } else {
         // 新規テンプレート作成
-        await axios.post('/api/templates', {
+        await apiClient.post('/api/templates', {
           company_id: companyId,
           template_name: templateName,
           job_type: jobType,
           industry: industry,
           company_requirement: companyRequirement,
           offer_template: offerTemplate,
+          output_rule_id: outputRuleId,
         });
         alert('テンプレートを保存しました');
       }
@@ -116,23 +143,25 @@ export default function RecruitmentToolForm() {
     setIndustry('');
     setCompanyRequirement('');
     setOfferTemplate('');
+    setOutputRuleId(outputRules[0]?.id || '');
   };
 
   // コメント生成
   const handleGenerateComment = async () => {
-    if (!jobType || !industry || !companyRequirement || !offerTemplate || !studentProfile) {
+    if (!jobType || !industry || !companyRequirement || !offerTemplate || !studentProfile || !outputRuleId) {
       alert('すべてのフィールドを入力してください');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/generate', {
+      const response = await apiClient.post('/api/generate', {
         job_type: jobType,
         industry: industry,
         company_requirement: companyRequirement,
         offer_template: offerTemplate,
         student_profile: studentProfile,
+        output_rule_id: parseInt(outputRuleId),
       });
       setGeneratedComment(response.data.comment);
     } catch (error) {
@@ -156,6 +185,9 @@ export default function RecruitmentToolForm() {
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <Link to="/job-types" className="btn-nav">
           職業適性を管理
+        </Link>
+        <Link to="/output-rules" className="btn-nav" style={{ marginLeft: '10px' }}>
+          出力ルールを管理
         </Link>
       </div>
 
@@ -229,6 +261,18 @@ export default function RecruitmentToolForm() {
             placeholder="例：【・・・を経験する中で発揮された・・・の能力】が大変素晴らしく、その熱意や考え方がとても魅力的で、当社でも活躍して頂ける人物と感じました！"
             rows="3"
           />
+        </div>
+
+        <div className="form-group">
+          <label>出力ルール *</label>
+          <select value={outputRuleId} onChange={(e) => setOutputRuleId(e.target.value)}>
+            <option value="">選択してください</option>
+            {outputRules.map((rule) => (
+              <option key={rule.id} value={rule.id}>
+                {rule.rule_name} {rule.description && `(${rule.description})`}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>

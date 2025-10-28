@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import pkg from 'pg';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const { Pool } = pkg;
 dotenv.config();
@@ -21,6 +23,303 @@ const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_API_KEY,
 });
 
+// ========== 認証ミドルウェア ==========
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'トークンが提供されていません' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'トークンが無効または期限切れです' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// ========== 認証 API ==========
+
+// ユーザー登録（管理者用）
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'ユーザー名とパスワードは必須です' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username',
+      [username, hashedPassword]
+    );
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'このユーザー名は既に使用されています' });
+    } else {
+      res.status(500).json({ error: 'ユーザー登録に失敗しました' });
+    }
+  }
+});
+
+// ログイン
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'ユーザー名とパスワードは必須です' });
+    }
+
+    const result = await pool.query(
+      'SELECT id, username, password_hash, user_status, user_role FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'ユーザー名またはパスワードが正しくありません' });
+    }
+
+    const user = result.rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'ユーザー名またはパスワードが正しくありません' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // user_status と user_role を含める
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        user_status: user.user_status,
+        user_role: user.user_role
+      }
+    });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ error: 'ログインに失敗しました' });
+  }
+});
+// ========== ユーザー情報管理 ==========
+
+// 現在のユーザー情報取得
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, user_status, user_role, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ error: 'ユーザー情報の取得に失敗しました' });
+  }
+});
+
+// ユーザー情報更新
+app.put('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    const { username, password, user_status, user_role } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: 'ユーザー名は必須です' });
+    }
+
+    // パスワード更新がある場合はハッシュ化
+    let hashedPassword = null;
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'パスワードは6文字以上である必要があります' });
+      }
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // パスワードがない場合は既存のパスワードを保持
+    const query = hashedPassword
+      ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
+         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`
+      : `UPDATE users SET username = $1, user_status = $3, user_role = $4, updated_at = NOW() 
+         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`;
+
+    const params = hashedPassword
+      ? [username, hashedPassword, user_status, user_role, req.user.id]
+      : [username, null, user_status, user_role, req.user.id];
+
+    const result = await pool.query(query, params);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'このユーザー名は既に使用されています' });
+    } else {
+      res.status(500).json({ error: 'ユーザー情報の更新に失敗しました' });
+    }
+  }
+});
+// ========== 管理者権限チェックミドルウェア ==========
+const requireAdmin = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      'SELECT user_role FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0 || result.rows[0].user_role !== 'admin') {
+      return res.status(403).json({ error: '管理者権限が必要です' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error checking admin role:', error);
+    res.status(500).json({ error: '権限チェックに失敗しました' });
+  }
+};
+
+// ========== ユーザー管理 API（管理者のみ）==========
+
+// 全ユーザー一覧取得
+app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, user_status, user_role, created_at, updated_at FROM users ORDER BY id ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'ユーザー一覧の取得に失敗しました' });
+  }
+});
+
+// 新規ユーザー作成（管理者用）
+app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { username, password, user_status, user_role } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'ユーザー名とパスワードは必須です' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'パスワードは6文字以上である必要があります' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      'INSERT INTO users (username, password_hash, user_status, user_role) VALUES ($1, $2, $3, $4) RETURNING id, username, user_status, user_role, created_at',
+      [username, hashedPassword, user_status || 'active', user_role || 'user']
+    );
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'このユーザー名は既に使用されています' });
+    } else {
+      res.status(500).json({ error: 'ユーザーの作成に失敗しました' });
+    }
+  }
+});
+
+// 特定ユーザー更新（管理者用）
+app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { username, password, user_status, user_role } = req.body;
+    const userId = req.params.id;
+
+    if (!username) {
+      return res.status(400).json({ error: 'ユーザー名は必須です' });
+    }
+
+    // パスワード更新がある場合はハッシュ化
+    let hashedPassword = null;
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'パスワードは6文字以上である必要があります' });
+      }
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // パスワードがない場合は既存のパスワードを保持
+    const query = hashedPassword
+      ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
+         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at, updated_at`
+      : `UPDATE users SET username = $1, user_status = $2, user_role = $3, updated_at = NOW() 
+         WHERE id = $4 RETURNING id, username, user_status, user_role, created_at, updated_at`;
+
+    const params = hashedPassword
+      ? [username, hashedPassword, user_status, user_role, userId]
+      : [username, user_status, user_role, userId];
+
+    const result = await pool.query(query, params);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    if (error.code === '23505') {
+      res.status(400).json({ error: 'このユーザー名は既に使用されています' });
+    } else {
+      res.status(500).json({ error: 'ユーザーの更新に失敗しました' });
+    }
+  }
+});
+
+// ユーザー削除（管理者用）
+app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // 自分自身は削除できないようにする
+    if (parseInt(userId) === req.user.id) {
+      return res.status(400).json({ error: '自分自身を削除することはできません' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 RETURNING id',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'ユーザーの削除に失敗しました' });
+  }
+});
 // ========== Health Check ==========
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -29,7 +328,7 @@ app.get('/api/health', (req, res) => {
 // ========== テンプレート管理 ==========
 
 // テンプレート一覧取得
-app.get('/api/templates', async (req, res) => {
+app.get('/api/templates', authenticateToken, async (req, res) => {
   try {
     const companyId = req.query.company_id;
     const result = await pool.query(
@@ -39,29 +338,29 @@ app.get('/api/templates', async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching templates:', error);
-    res.status(500).json({ error: 'Failed to fetch templates' });
+    res.status(500).json({ error: 'テンプレートの取得に失敗しました' });
   }
 });
 
 // テンプレート詳細取得
-app.get('/api/templates/:id', async (req, res) => {
+app.get('/api/templates/:id', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM templates WHERE id = $1',
       [req.params.id]
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Template not found' });
+      return res.status(404).json({ error: 'テンプレートが見つかりません' });
     }
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching template:', error);
-    res.status(500).json({ error: 'Failed to fetch template' });
+    res.status(500).json({ error: 'テンプレートの取得に失敗しました' });
   }
 });
 
 // テンプレート保存
-app.post('/api/templates', async (req, res) => {
+app.post('/api/templates', authenticateToken, async (req, res) => {
   try {
     const {
       company_id,
@@ -70,69 +369,71 @@ app.post('/api/templates', async (req, res) => {
       industry,
       company_requirement,
       offer_template,
+      output_rule_id,
     } = req.body;
 
     const result = await pool.query(
       `INSERT INTO templates 
-       (company_id, template_name, job_type, industry, company_requirement, offer_template)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       (company_id, template_name, job_type, industry, company_requirement, offer_template, output_rule_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (company_id, template_name) DO UPDATE 
-       SET job_type = $3, industry = $4, company_requirement = $5, offer_template = $6, updated_at = NOW()
+       SET job_type = $3, industry = $4, company_requirement = $5, offer_template = $6, output_rule_id = $7, updated_at = NOW()
        RETURNING id`,
-      [company_id, template_name, job_type, industry, company_requirement, offer_template]
+      [company_id, template_name, job_type, industry, company_requirement, offer_template, output_rule_id]
     );
 
     res.json({ success: true, id: result.rows[0].id });
   } catch (error) {
     console.error('Error saving template:', error);
-    res.status(500).json({ error: 'Failed to save template' });
+    res.status(500).json({ error: 'テンプレートの保存に失敗しました' });
   }
 });
 
 // テンプレート更新
-app.put('/api/templates/:id', async (req, res) => {
+app.put('/api/templates/:id', authenticateToken, async (req, res) => {
   try {
     const {
       job_type,
       industry,
       company_requirement,
       offer_template,
+      output_rule_id,
     } = req.body;
 
     const result = await pool.query(
       `UPDATE templates 
-       SET job_type = $1, industry = $2, company_requirement = $3, offer_template = $4, updated_at = NOW()
-       WHERE id = $5
+       SET job_type = $1, industry = $2, company_requirement = $3, offer_template = $4, output_rule_id = $5, updated_at = NOW()
+       WHERE id = $6
        RETURNING id`,
-      [job_type, industry, company_requirement, offer_template, req.params.id]
+      [job_type, industry, company_requirement, offer_template, output_rule_id, req.params.id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Template not found' });
+      return res.status(404).json({ error: 'テンプレートが見つかりません' });
     }
 
     res.json({ success: true, id: result.rows[0].id });
   } catch (error) {
     console.error('Error updating template:', error);
-    res.status(500).json({ error: 'Failed to update template' });
+    res.status(500).json({ error: 'テンプレートの更新に失敗しました' });
   }
 });
 
 // テンプレート削除
-app.delete('/api/templates/:id', async (req, res) => {
+app.delete('/api/templates/:id', authenticateToken, async (req, res) => {
   try {
     await pool.query('DELETE FROM templates WHERE id = $1', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting template:', error);
-    res.status(500).json({ error: 'Failed to delete template' });
+    res.status(500).json({ error: 'テンプレートの削除に失敗しました' });
   }
 });
 
 // ========== 職業適性管理 ==========
 
 // 職業適性一覧取得
-app.get('/api/job-types', async (req, res) => {
+app.get('/api/job-types', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, name, definition FROM job_types ORDER BY created_at ASC'
@@ -140,17 +441,17 @@ app.get('/api/job-types', async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching job types:', error);
-    res.status(500).json({ error: 'Failed to fetch job types' });
+    res.status(500).json({ error: '職業適性の取得に失敗しました' });
   }
 });
 
 // 職業適性作成
-app.post('/api/job-types', async (req, res) => {
+app.post('/api/job-types', authenticateToken, async (req, res) => {
   try {
     const { name, definition } = req.body;
 
     if (!name || !definition) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
     const result = await pool.query(
@@ -161,12 +462,12 @@ app.post('/api/job-types', async (req, res) => {
     res.json({ success: true, id: result.rows[0].id });
   } catch (error) {
     console.error('Error creating job type:', error);
-    res.status(500).json({ error: 'Failed to create job type' });
+    res.status(500).json({ error: '職業適性の作成に失敗しました' });
   }
 });
 
 // 職業適性更新
-app.put('/api/job-types/:id', async (req, res) => {
+app.put('/api/job-types/:id', authenticateToken, async (req, res) => {
   try {
     const { name, definition } = req.body;
 
@@ -176,37 +477,134 @@ app.put('/api/job-types/:id', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Job type not found' });
+      return res.status(404).json({ error: '職業適性が見つかりません' });
     }
 
     res.json({ success: true });
   } catch (error) {
     console.error('Error updating job type:', error);
-    res.status(500).json({ error: 'Failed to update job type' });
+    res.status(500).json({ error: '職業適性の更新に失敗しました' });
   }
 });
 
 // 職業適性削除
-app.delete('/api/job-types/:id', async (req, res) => {
+app.delete('/api/job-types/:id', authenticateToken, async (req, res) => {
   try {
     await pool.query('DELETE FROM job_types WHERE id = $1', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting job type:', error);
-    res.status(500).json({ error: 'Failed to delete job type' });
+    res.status(500).json({ error: '職業適性の削除に失敗しました' });
+  }
+});
+
+// ========== 出力ルール管理 ==========
+
+// 出力ルール一覧取得
+app.get('/api/output-rules', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching output rules:', error);
+    res.status(500).json({ error: '出力ルールの取得に失敗しました' });
+  }
+});
+
+// 出力ルール詳細取得
+app.get('/api/output-rules/:id', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM output_rules WHERE id = $1',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '出力ルールが見つかりません' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching output rule:', error);
+    res.status(500).json({ error: '出力ルールの取得に失敗しました' });
+  }
+});
+
+// 出力ルール作成
+app.post('/api/output-rules', authenticateToken, async (req, res) => {
+  try {
+    const { rule_name, rule_text, description, is_active } = req.body;
+
+    if (!rule_name || !rule_text) {
+      return res.status(400).json({ error: '必須項目が不足しています' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO output_rules (rule_name, rule_text, description, is_active) VALUES ($1, $2, $3, $4) RETURNING id',
+      [rule_name, rule_text, description, is_active !== false]
+    );
+
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (error) {
+    console.error('Error creating output rule:', error);
+    res.status(500).json({ error: '出力ルールの作成に失敗しました' });
+  }
+});
+
+// 出力ルール更新
+app.put('/api/output-rules/:id', authenticateToken, async (req, res) => {
+  try {
+    const { rule_name, rule_text, description, is_active } = req.body;
+
+    const result = await pool.query(
+      'UPDATE output_rules SET rule_name = $1, rule_text = $2, description = $3, is_active = $4, updated_at = NOW() WHERE id = $5 RETURNING id',
+      [rule_name, rule_text, description, is_active !== false, req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '出力ルールが見つかりません' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating output rule:', error);
+    res.status(500).json({ error: '出力ルールの更新に失敗しました' });
+  }
+});
+
+// 出力ルール削除
+app.delete('/api/output-rules/:id', authenticateToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM output_rules WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting output rule:', error);
+    res.status(500).json({ error: '出力ルールの削除に失敗しました' });
   }
 });
 
 // ========== コメント生成 ==========
 
 // プロンプト組立関数（非同期）
-async function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile) {
+async function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile, output_rule_id) {
   try {
+    // DBから出力ルールを取得
+    const ruleResult = await pool.query(
+      'SELECT rule_text FROM output_rules WHERE id = $1',
+      [output_rule_id]
+    );
+
+    if (ruleResult.rows.length === 0) {
+      throw new Error('出力ルールが見つかりません');
+    }
+
+    const outputRuleText = ruleResult.rows[0].rule_text;
+
     // DBから全職種定義を取得
     const result = await pool.query(
       'SELECT name, definition FROM job_types ORDER BY created_at ASC'
     );
-    
+
     // 職種定義を辞書形式に変換
     const jobDefinitions = {};
     result.rows.forEach(row => {
@@ -230,13 +628,7 @@ ${jobDefinitionsText}
 ${jobType}：${jobDefinition}
 
 【出力ルール】
-- 【】内の文章のみを出力する（【】記号や句点は含めない）
-- 200-300文字程度の適度なボリュームを持たせる
-- エピソードから発揮された能力を2-3個抽出し、対比・関連付けながら組み合わせる
-- 出力例の通り、「〇〇での××経験と△△での□□経験を通じて発揮された●●力と▲▲力、■■における◆◆力と◇◇力」という構成を意識する
-- 基本的に2つのエピソードを盛り込む
-- エピソードが1つのみの場合は「※一つのエピソードで作成」と明記する
-- プロフィールに具体的なエピソードがない場合は、学部・志望職種・志望業種・資格・スキルから思考特性や学習意欲を抽出する`;
+${outputRuleText}`;
 
     const userMessage = `
 【職種】${jobType}
@@ -257,7 +649,7 @@ ${studentProfile}
 }
 
 // コメント生成エンドポイント
-app.post('/api/generate', async (req, res) => {
+app.post('/api/generate', authenticateToken, async (req, res) => {
   try {
     const {
       job_type,
@@ -265,19 +657,21 @@ app.post('/api/generate', async (req, res) => {
       company_requirement,
       offer_template,
       student_profile,
+      output_rule_id,
     } = req.body;
 
-    if (!job_type || !industry || !company_requirement || !offer_template || !student_profile) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!job_type || !industry || !company_requirement || !offer_template || !student_profile || !output_rule_id) {
+      return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
-// プロンプト組立
-const { systemPrompt, userMessage } = await buildPrompt(
+    // プロンプト組立
+    const { systemPrompt, userMessage } = await buildPrompt(
       job_type,
       industry,
       company_requirement,
       offer_template,
-      student_profile
+      student_profile,
+      output_rule_id
     );
 
     // Claude API呼び出し
@@ -293,21 +687,21 @@ const { systemPrompt, userMessage } = await buildPrompt(
       ],
     });
 
-    const generatedComment = message.content[0].type === 'text' 
-      ? message.content[0].text 
+    const generatedComment = message.content[0].type === 'text'
+      ? message.content[0].text
       : '';
 
     res.json({ success: true, comment: generatedComment });
   } catch (error) {
     console.error('Error generating comment:', error);
-    res.status(500).json({ error: 'Failed to generate comment' });
+    res.status(500).json({ error: 'コメント生成に失敗しました' });
   }
 });
 
 // エラーハンドリング
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'サーバーエラーが発生しました' });
 });
 
 // サーバー起動
