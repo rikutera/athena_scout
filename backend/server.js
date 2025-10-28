@@ -13,28 +13,20 @@ const app = express();
 app.use(express.json());
 
 // ================= CORS 設定 =================
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
-];
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // curlやPostmanなどOriginなしも許可
-    if (!allowedOrigins.includes(origin)) {
-      return callback(new Error('CORS policy does not allow this origin'), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+  origin: allowedOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
-// プリフライト対応
-app.options("*", cors({
-  origin: allowedOrigins,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+// Preflight対応
+app.options('*', cors({
+  origin: allowedOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 // ============================================
