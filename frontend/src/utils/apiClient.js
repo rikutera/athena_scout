@@ -1,9 +1,12 @@
 import axios from 'axios';
 
 // axios インスタンスを作成
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 });
+
 
 // リクエストインターセプター - トークンを自動付与
 apiClient.interceptors.request.use(
