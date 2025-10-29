@@ -37,9 +37,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// プリフライトリクエストを明示的に処理
-app.options('*', cors());
-
 // Database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
