@@ -164,7 +164,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, username, user_status, user_role, created_at FROM users WHERE id = $1',
-      [req.user.id]
+      [req.user.userId]  // ← userId に変更
     );
 
     if (result.rows.length === 0) {
