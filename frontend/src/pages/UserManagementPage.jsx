@@ -18,7 +18,16 @@ export default function UserManagementPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  // 履歴モーダル用の状態
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [loginLogs, setLoginLogs] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [activeTab, setActiveTab] = useState('login'); // 'login' or 'activity'
+  const [logsLoading, setLogsLoading] = useState(false);
+
   useEffect(() => {
+    document.title = 'ユーザー管理 - 採用ツール';
     fetchUsers();
   }, []);
 
@@ -145,6 +154,40 @@ export default function UserManagementPage() {
     setError('');
   };
 
+  // 履歴表示
+  const handleShowLogs = async (user) => {
+    setSelectedUser(user);
+    setShowLogsModal(true);
+    setActiveTab('login');
+    setLogsLoading(true);
+
+    try {
+      // ログイン履歴を取得
+      const loginResponse = await apiClient.get('/api/admin/login-logs', {
+        params: { user_id: user.id, limit: 50 }
+      });
+      setLoginLogs(loginResponse.data);
+
+      // 利用履歴を取得
+      const activityResponse = await apiClient.get('/api/admin/activity-logs', {
+        params: { user_id: user.id, limit: 50 }
+      });
+      setActivityLogs(activityResponse.data);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+      setError('履歴の取得に失敗しました');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const handleCloseLogsModal = () => {
+    setShowLogsModal(false);
+    setSelectedUser(null);
+    setLoginLogs([]);
+    setActivityLogs([]);
+  };
+
   if (loading) {
     return <div className="user-management"><p>読み込み中...</p></div>;
   }
@@ -198,6 +241,12 @@ export default function UserManagementPage() {
                     </td>
                     <td>{new Date(user.created_at).toLocaleString('ja-JP')}</td>
                     <td>
+                      <button
+                        onClick={() => handleShowLogs(user)}
+                        className="btn-logs-small"
+                      >
+                        履歴
+                      </button>
                       <button
                         onClick={() => handleEdit(user)}
                         className="btn-edit-small"
@@ -292,6 +341,93 @@ export default function UserManagementPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* 履歴モーダル */}
+      {showLogsModal && (
+        <div className="modal-overlay" onClick={handleCloseLogsModal}>
+          <div className="modal-content logs-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedUser?.username} の履歴</h2>
+              <button className="modal-close" onClick={handleCloseLogsModal}>×</button>
+            </div>
+
+            <div className="tabs">
+              <button
+                className={`tab ${activeTab === 'login' ? 'active' : ''}`}
+                onClick={() => setActiveTab('login')}
+              >
+                ログイン履歴
+              </button>
+              <button
+                className={`tab ${activeTab === 'activity' ? 'active' : ''}`}
+                onClick={() => setActiveTab('activity')}
+              >
+                利用履歴
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {logsLoading ? (
+                <p>読み込み中...</p>
+              ) : (
+                <>
+                  {activeTab === 'login' && (
+                    <div className="logs-table">
+                      {loginLogs.length === 0 ? (
+                        <p>ログイン履歴がありません</p>
+                      ) : (
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>ログイン日時</th>
+                              <th>IPアドレス</th>
+                              <th>ユーザーエージェント</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {loginLogs.map((log) => (
+                              <tr key={log.id}>
+                                <td>{new Date(log.login_at).toLocaleString('ja-JP')}</td>
+                                <td>{log.ip_address}</td>
+                                <td className="user-agent">{log.user_agent}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'activity' && (
+                    <div className="logs-table">
+                      {activityLogs.length === 0 ? (
+                        <p>利用履歴がありません</p>
+                      ) : (
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>日時</th>
+                              <th>アクション</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activityLogs.map((log) => (
+                              <tr key={log.id}>
+                                <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
+                                <td>{log.action}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
