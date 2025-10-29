@@ -109,9 +109,9 @@ app.post('/api/auth/register', async (req, res) => {
 // ログイン
 app.post('/api/auth/login', async (req, res) => {
   console.log('Login attempt:', req.body);
-
+  
   const { username, password } = req.body;
-
+  
   if (!username || !password) {
     console.log('Missing credentials');
     return res.status(400).json({ error: 'Username and password required' });
@@ -120,17 +120,16 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     console.log('User query result:', result.rows.length > 0 ? 'User found' : 'User not found');
-
+    
     if (result.rows.length === 0) {
       console.log('User not found in database');
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    console.log('User object keys:', Object.keys(user)); // デバッグ：フィールド名を確認
-    console.log('User password field:', user.password); // デバッグ：パスワードの値を確認
-
-    const validPassword = await bcrypt.compare(password, user.password);
+    console.log('Comparing password with password_hash');
+    
+    const validPassword = await bcrypt.compare(password, user.password_hash); // ← password_hash に変更
     console.log('Password valid:', validPassword);
 
     if (!validPassword) {
