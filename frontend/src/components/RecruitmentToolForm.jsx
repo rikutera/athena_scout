@@ -178,6 +178,25 @@ export default function RecruitmentToolForm() {
     alert('コピーしました');
   };
 
+  // 学生プロフィールをクリア
+  const handleClearProfile = () => {
+    if (confirm('学生のプロフィール情報をクリアしますか？')) {
+      setStudentProfile('');
+    }
+  };
+
+  // クリップボードから貼り付け
+  const handlePasteProfile = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setStudentProfile(text);
+      alert('貼り付けました');
+    } catch (error) {
+      console.error('Error pasting from clipboard:', error);
+      alert('貼り付けに失敗しました。ブラウザの設定を確認してください。');
+    }
+  };
+
   return (
     <div className="recruitment-tool">
       <h1>オファーメッセージ生成</h1>
@@ -298,6 +317,22 @@ export default function RecruitmentToolForm() {
             placeholder="自己PR、将来像、過去エピソード、研究内容、インターン経験等を入力してください"
             rows="6"
           />
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <button
+              onClick={handlePasteProfile}
+              className="btn-secondary"
+              type="button"
+            >
+              📋 貼り付け
+            </button>
+            <button
+              onClick={handleClearProfile}
+              className="btn-cancel"
+              type="button"
+            >
+              🗑️ クリア
+            </button>
+          </div>
         </div>
       </section>
 
