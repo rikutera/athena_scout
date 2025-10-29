@@ -41,6 +41,12 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
   next();
 });
+
+// ========== ヘルスチェック（追加） ==========
+app.get('/health', (req, res) => {
+  console.log('Health check called');
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 // ========================================
 
 // Database
