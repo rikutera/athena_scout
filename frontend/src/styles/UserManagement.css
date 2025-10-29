@@ -85,6 +85,7 @@
   padding: 15px;
   text-align: left;
   border-bottom: 1px solid #ecf0f1;
+  color: #2c3e50;
 }
 
 .users-table th {
@@ -347,6 +348,7 @@
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ecf0f1;
+  color: #2c3e50;
 }
 
 .logs-table th {
