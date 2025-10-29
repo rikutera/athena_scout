@@ -109,9 +109,9 @@ app.post('/api/auth/register', async (req, res) => {
 // ログイン
 app.post('/api/auth/login', async (req, res) => {
   console.log('Login attempt:', req.body);
-  
+
   const { username, password } = req.body;
-  
+
   if (!username || !password) {
     console.log('Missing credentials');
     return res.status(400).json({ error: 'Username and password required' });
@@ -120,7 +120,7 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     console.log('User query result:', result.rows.length > 0 ? 'User found' : 'User not found');
-    
+
     if (result.rows.length === 0) {
       console.log('User not found in database');
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -128,7 +128,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = result.rows[0];
     console.log('Comparing password with password_hash');
-    
+
     const validPassword = await bcrypt.compare(password, user.password_hash); // ← password_hash に変更
     console.log('Password valid:', validPassword);
 
@@ -137,7 +137,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
       expiresIn: '24h'
     });
 
@@ -729,14 +729,55 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'サーバーエラーが発生しました' });
 });
 
+// データベース初期化関数
+async function initializeDatabase() {
+  try {
+    // usersテーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_status VARCHAR(50) DEFAULT 'active',
+        user_role VARCHAR(50) DEFAULT 'user'
+      )
+    `);
+
+    console.log('Database tables created');
+
+    // 既存のadminユーザーを削除
+    await pool.query('DELETE FROM users WHERE username = $1', ['admin']);
+    console.log('Deleted existing admin user (if exists)');
+
+    // 新しいadminユーザーを作成
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    console.log('Generated password hash for admin');
+
+    await pool.query(
+      'INSERT INTO users (username, password_hash, user_role) VALUES ($1, $2, $3)',
+      ['admin', hashedPassword, 'admin']
+    );
+    console.log('Created new admin user with correct password_hash');
+
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+}
+
 // サーバー起動
 const PORT = process.env.PORT || 3001;
 const HOST = '0.0.0.0';
+const JWT_SECRET = process.env.JWT_SECRET; // JWT_SECRETを定義
 
 console.log('Environment PORT:', process.env.PORT);
 console.log('Using PORT:', PORT);
 console.log('Using HOST:', HOST);
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
+// データベース初期化してからサーバー起動
+initializeDatabase().then(() => {
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT}`);
+  });
 });
