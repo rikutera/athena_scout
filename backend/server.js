@@ -672,7 +672,7 @@ ${outputRuleText}`;
 【学生のプロフィール】
 ${studentProfile}
 
-上記の学生のプロフィール情報を基に、指定職種の特性に合致するエピソードを優先的に抽出し、テンプレートの【】内部分を作成してください。`;
+上記の学生のプロフィール情報を基に、指定職種の特性に合致するエピソードを優先的に抽出し、テンプレートの【】内部分のみを作成してください。`;
 
     return { systemPrompt, userMessage };
   } catch (error) {
@@ -709,7 +709,7 @@ app.post('/api/generate', authenticateToken, async (req, res) => {
 
     // Claude API呼び出し
     const message = await anthropic.messages.create({
-      model: 'claude-opus-4-1',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       system: systemPrompt,
       messages: [
