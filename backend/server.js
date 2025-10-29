@@ -23,9 +23,8 @@ console.log('Allowed origins:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // originがない場合（Postmanなど）も許可
     if (!origin) return callback(null, true);
-
+    
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
@@ -36,6 +35,13 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// ========== リクエストログ追加 ==========
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
+  next();
+});
+// ========================================
 
 // Database
 const pool = new Pool({
