@@ -142,7 +142,13 @@ app.post('/api/auth/login', async (req, res) => {
     });
 
     console.log('Login successful for user:', username);
-    res.json({ token, username: user.username });
+    res.json({
+      token,
+      username: user.username,
+      user_role: user.user_role,
+      user_status: user.user_status,
+      id: user.id
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
