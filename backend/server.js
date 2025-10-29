@@ -736,7 +736,11 @@ app.use((err, req, res, next) => {
 
 // サーバー起動
 const PORT = process.env.PORT || 3001;
-const HOST = '0.0.0.0'; // すべてのネットワークインターフェースでリッスン
+const HOST = '0.0.0.0';
+
+console.log('Environment PORT:', process.env.PORT);
+console.log('Using PORT:', PORT);
+console.log('Using HOST:', HOST);
 
 app.listen(PORT, HOST, () => {
   console.log(`Server running on ${HOST}:${PORT}`);
