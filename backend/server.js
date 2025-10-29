@@ -22,9 +22,23 @@ console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
 console.log('Allowed origins:', allowedOrigins);
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: function (origin, callback) {
+    // originがない場合（Postmanなど）も許可
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// プリフライトリクエストを明示的に処理
+app.options('*', cors());
 
 // Database
 const pool = new Pool({
