@@ -127,6 +127,9 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+    console.log('User object keys:', Object.keys(user)); // デバッグ：フィールド名を確認
+    console.log('User password field:', user.password); // デバッグ：パスワードの値を確認
+
     const validPassword = await bcrypt.compare(password, user.password);
     console.log('Password valid:', validPassword);
 
