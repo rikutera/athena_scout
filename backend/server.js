@@ -724,6 +724,8 @@ app.use((err, req, res, next) => {
 
 // サーバー起動
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const HOST = '0.0.0.0'; // すべてのネットワークインターフェースでリッスン
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
 });
