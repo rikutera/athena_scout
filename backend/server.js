@@ -144,10 +144,12 @@ app.post('/api/auth/login', async (req, res) => {
     console.log('Login successful for user:', username);
     res.json({
       token,
-      username: user.username,
-      user_role: user.user_role,
-      user_status: user.user_status,
-      id: user.id
+      user: {
+        id: user.id,
+        username: user.username,
+        user_role: user.user_role,
+        user_status: user.user_status
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
