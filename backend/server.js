@@ -24,7 +24,7 @@ console.log('Allowed origins:', allowedOrigins);
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
@@ -108,49 +108,42 @@ app.post('/api/auth/register', async (req, res) => {
 
 // ログイン
 app.post('/api/auth/login', async (req, res) => {
+  console.log('Login attempt:', req.body);
+
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    console.log('Missing credentials');
+    return res.status(400).json({ error: 'Username and password required' });
+  }
+
   try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'ユーザー名とパスワードは必須です' });
-    }
-
-    const result = await pool.query(
-      'SELECT id, username, password_hash, user_status, user_role FROM users WHERE username = $1',
-      [username]
-    );
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    console.log('User query result:', result.rows.length > 0 ? 'User found' : 'User not found');
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'ユーザー名またはパスワードが正しくありません' });
+      console.log('User not found in database');
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    const validPassword = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', validPassword);
 
-    if (!passwordMatch) {
-      return res.status(401).json({ error: 'ユーザー名またはパスワードが正しくありません' });
+    if (!validPassword) {
+      console.log('Invalid password');
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // user_status と user_role を含める
-    res.json({
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        user_status: user.user_status,
-        user_role: user.user_role
-      }
+    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, {
+      expiresIn: '24h'
     });
+
+    console.log('Login successful for user:', username);
+    res.json({ token, username: user.username });
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ error: 'ログインに失敗しました' });
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
