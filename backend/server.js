@@ -204,8 +204,8 @@ app.put('/api/auth/me', authenticateToken, async (req, res) => {
          WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`;
 
     const params = hashedPassword
-      ? [username, hashedPassword, user_status, user_role, req.user.id]
-      : [username, null, user_status, user_role, req.user.id];
+      ? [username, hashedPassword, user_status, user_role, req.user.userId]
+      : [username, null, user_status, user_role, req.user.userId];
 
     const result = await pool.query(query, params);
 
@@ -229,7 +229,7 @@ const requireAdmin = async (req, res, next) => {
   try {
     const result = await pool.query(
       'SELECT user_role FROM users WHERE id = $1',
-      [req.user.id]
+      [req.user.userId]
     );
 
     if (result.rows.length === 0 || result.rows[0].user_role !== 'admin') {
@@ -342,7 +342,7 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =
     const userId = req.params.id;
 
     // 自分自身は削除できない
-    if (parseInt(userId) === req.user.id) {
+    if (parseInt(userId) === req.user.userId) {
       return res.status(400).json({ error: '自分自身を削除することはできません' });
     }
 
