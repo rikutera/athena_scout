@@ -317,20 +317,20 @@ export default function RecruitmentToolForm() {
             placeholder="自己PR、将来像、過去エピソード、研究内容、インターン経験等を入力してください"
             rows="6"
           />
-          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          <div className="profile-actions">
             <button
               onClick={handlePasteProfile}
-              className="btn-secondary"
+              className="btn-paste"
               type="button"
             >
-              📋 貼り付け
+              貼り付け
             </button>
             <button
               onClick={handleClearProfile}
-              className="btn-cancel"
+              className="btn-clear"
               type="button"
             >
-              🗑️ クリア
+              クリア
             </button>
           </div>
         </div>
