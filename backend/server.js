@@ -42,12 +42,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ========== ヘルスチェック（追加） ==========
+// ========== ヘルスチェック ==========
 app.get('/health', (req, res) => {
   console.log('Health check called');
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-// ========================================
 
 // Database
 const pool = new Pool({
@@ -75,6 +74,28 @@ const authenticateToken = (req, res, next) => {
     req.user = user;
     next();
   });
+};
+
+// ========== 利用履歴記録ミドルウェア ==========
+const logActivity = (action) => {
+  return async (req, res, next) => {
+    try {
+      if (req.user) {
+        const details = {
+          path: req.path,
+          method: req.method,
+          body: req.method === 'POST' ? req.body : undefined
+        };
+        await pool.query(
+          'INSERT INTO activity_logs (user_id, username, action, details) VALUES ($1, $2, $3, $4)',
+          [req.user.userId, req.user.username, action, JSON.stringify(details)]
+        );
+      }
+    } catch (error) {
+      console.error('Error logging activity:', error);
+    }
+    next();
+  };
 };
 
 // ========== 認証 API ==========
@@ -129,7 +150,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = result.rows[0];
     console.log('Comparing password with password_hash');
 
-    const validPassword = await bcrypt.compare(password, user.password_hash); // ← password_hash に変更
+    const validPassword = await bcrypt.compare(password, user.password_hash);
     console.log('Password valid:', validPassword);
 
     if (!validPassword) {
@@ -140,6 +161,15 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
       expiresIn: '24h'
     });
+
+    // ログイン履歴を記録
+    const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    await pool.query(
+      'INSERT INTO login_logs (user_id, username, ip_address, user_agent) VALUES ($1, $2, $3, $4)',
+      [user.id, user.username, ipAddress, userAgent]
+    );
 
     console.log('Login successful for user:', username);
     res.json({
@@ -164,7 +194,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, username, user_status, user_role, created_at FROM users WHERE id = $1',
-      [req.user.userId]  // ← userId に変更
+      [req.user.userId]
     );
 
     if (result.rows.length === 0) {
@@ -179,7 +209,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 });
 
 // ユーザー情報更新
-app.put('/api/auth/me', authenticateToken, async (req, res) => {
+app.put('/api/auth/me', authenticateToken, logActivity('プロフィール更新'), async (req, res) => {
   try {
     const { username, password, user_status, user_role } = req.body;
 
@@ -259,7 +289,7 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // 新規ユーザー作成（管理者用）
-app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/api/users', authenticateToken, requireAdmin, logActivity('ユーザー作成'), async (req, res) => {
   try {
     const { username, password, user_status, user_role } = req.body;
 
@@ -290,7 +320,7 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // 特定ユーザー更新（管理者用）
-app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.put('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユーザー更新'), async (req, res) => {
   try {
     const { username, password, user_status, user_role } = req.body;
     const userId = req.params.id;
@@ -337,7 +367,7 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // ユーザー削除（管理者用）
-app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユーザー削除'), async (req, res) => {
   try {
     const userId = req.params.id;
 
@@ -351,6 +381,56 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'ユーザーの削除に失敗しました' });
+  }
+});
+
+// ========== ログイン履歴・利用履歴 API（管理者のみ）==========
+
+// ログイン履歴取得
+app.get('/api/admin/login-logs', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { user_id, limit = 100 } = req.query;
+    
+    let query = 'SELECT * FROM login_logs';
+    let params = [];
+    
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+    
+    query += ' ORDER BY login_at DESC LIMIT $' + (params.length + 1);
+    params.push(limit);
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching login logs:', error);
+    res.status(500).json({ error: 'ログイン履歴の取得に失敗しました' });
+  }
+});
+
+// 利用履歴取得
+app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { user_id, limit = 100 } = req.query;
+    
+    let query = 'SELECT * FROM activity_logs';
+    let params = [];
+    
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
+    params.push(limit);
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    res.status(500).json({ error: '利用履歴の取得に失敗しました' });
   }
 });
 
@@ -387,7 +467,7 @@ app.get('/api/templates/:id', authenticateToken, async (req, res) => {
 });
 
 // テンプレート作成
-app.post('/api/templates', authenticateToken, async (req, res) => {
+app.post('/api/templates', authenticateToken, logActivity('テンプレート作成'), async (req, res) => {
   try {
     const {
       company_id,
@@ -420,7 +500,7 @@ app.post('/api/templates', authenticateToken, async (req, res) => {
 });
 
 // テンプレート更新
-app.put('/api/templates/:id', authenticateToken, async (req, res) => {
+app.put('/api/templates/:id', authenticateToken, logActivity('テンプレート更新'), async (req, res) => {
   try {
     const {
       company_id,
@@ -453,7 +533,7 @@ app.put('/api/templates/:id', authenticateToken, async (req, res) => {
 });
 
 // テンプレート削除
-app.delete('/api/templates/:id', authenticateToken, async (req, res) => {
+app.delete('/api/templates/:id', authenticateToken, logActivity('テンプレート削除'), async (req, res) => {
   try {
     await pool.query('DELETE FROM templates WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -479,7 +559,7 @@ app.get('/api/job-types', authenticateToken, async (req, res) => {
 });
 
 // 職業適性作成
-app.post('/api/job-types', authenticateToken, async (req, res) => {
+app.post('/api/job-types', authenticateToken, logActivity('職業適性作成'), async (req, res) => {
   try {
     const { name, definition } = req.body;
 
@@ -500,7 +580,7 @@ app.post('/api/job-types', authenticateToken, async (req, res) => {
 });
 
 // 職業適性更新
-app.put('/api/job-types/:id', authenticateToken, async (req, res) => {
+app.put('/api/job-types/:id', authenticateToken, logActivity('職業適性更新'), async (req, res) => {
   try {
     const { name, definition } = req.body;
 
@@ -521,7 +601,7 @@ app.put('/api/job-types/:id', authenticateToken, async (req, res) => {
 });
 
 // 職業適性削除
-app.delete('/api/job-types/:id', authenticateToken, async (req, res) => {
+app.delete('/api/job-types/:id', authenticateToken, logActivity('職業適性削除'), async (req, res) => {
   try {
     await pool.query('DELETE FROM job_types WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -564,7 +644,7 @@ app.get('/api/output-rules/:id', authenticateToken, async (req, res) => {
 });
 
 // 出力ルール作成
-app.post('/api/output-rules', authenticateToken, async (req, res) => {
+app.post('/api/output-rules', authenticateToken, logActivity('出力ルール作成'), async (req, res) => {
   try {
     const { rule_name, rule_text, description, is_active } = req.body;
 
@@ -585,7 +665,7 @@ app.post('/api/output-rules', authenticateToken, async (req, res) => {
 });
 
 // 出力ルール更新
-app.put('/api/output-rules/:id', authenticateToken, async (req, res) => {
+app.put('/api/output-rules/:id', authenticateToken, logActivity('出力ルール更新'), async (req, res) => {
   try {
     const { rule_name, rule_text, description, is_active } = req.body;
 
@@ -606,7 +686,7 @@ app.put('/api/output-rules/:id', authenticateToken, async (req, res) => {
 });
 
 // 出力ルール削除
-app.delete('/api/output-rules/:id', authenticateToken, async (req, res) => {
+app.delete('/api/output-rules/:id', authenticateToken, logActivity('出力ルール削除'), async (req, res) => {
   try {
     await pool.query('DELETE FROM output_rules WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -682,7 +762,7 @@ ${studentProfile}
 }
 
 // コメント生成エンドポイント
-app.post('/api/generate', authenticateToken, async (req, res) => {
+app.post('/api/generate', authenticateToken, logActivity('コメント生成'), async (req, res) => {
   try {
     const {
       job_type,
@@ -752,8 +832,32 @@ async function initializeDatabase() {
         user_role VARCHAR(50) DEFAULT 'user'
       )
     `);
+    
+    // ログイン履歴テーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS login_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        username VARCHAR(255),
+        login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ip_address VARCHAR(45),
+        user_agent TEXT
+      )
+    `);
+    
+    // 利用履歴テーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        username VARCHAR(255),
+        action VARCHAR(100),
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-    console.log('Database tables created');
+    console.log('Database tables created (users, login_logs, activity_logs)');
 
     // 既存のadminユーザーを削除
     await pool.query('DELETE FROM users WHERE username = $1', ['admin']);
@@ -777,7 +881,6 @@ async function initializeDatabase() {
 // サーバー起動
 const PORT = process.env.PORT || 3001;
 const HOST = '0.0.0.0';
-const JWT_SECRET = process.env.JWT_SECRET; // JWT_SECRETを定義
 
 console.log('Environment PORT:', process.env.PORT);
 console.log('Using PORT:', PORT);
