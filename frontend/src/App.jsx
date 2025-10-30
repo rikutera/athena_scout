@@ -49,7 +49,7 @@ function App() {
       <nav className="navbar">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            <img src="/favicon.ico" alt="logo" className="nav-logo-icon" />
+            <img src="/logo.png" alt="logo" className="nav-logo-icon" />
             Athena Scout
           </Link>
 
