@@ -26,7 +26,6 @@ export default function MyPage() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   useEffect(() => {
-    console.log('📄 MyPages mounted!');
     document.title = 'マイページ - Athena Scout';
     fetchUserInfo();
     fetchGenerationHistory();
