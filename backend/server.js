@@ -217,7 +217,6 @@ app.put('/api/auth/me', authenticateToken, logActivity('プロフィール更新
       return res.status(400).json({ error: 'ユーザー名は必須です' });
     }
 
-    // パスワード更新がある場合はハッシュ化
     let hashedPassword = null;
     if (password) {
       if (password.length < 6) {
@@ -226,7 +225,6 @@ app.put('/api/auth/me', authenticateToken, logActivity('プロフィール更新
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // パスワードがない場合は既存のパスワードを保持
     const query = hashedPassword
       ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
          WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`
@@ -329,7 +327,6 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユー�
       return res.status(400).json({ error: 'ユーザー名は必須です' });
     }
 
-    // パスワード更新がある場合はハッシュ化
     let hashedPassword = null;
     if (password) {
       if (password.length < 6) {
@@ -338,7 +335,6 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユー�
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // パスワードがない場合は既存のパスワードを保持
     const query = hashedPassword
       ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
          WHERE id = $5 RETURNING id, username, user_status, user_role, created_at, updated_at`
@@ -371,7 +367,6 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユ�
   try {
     const userId = req.params.id;
 
-    // 自分自身は削除できない
     if (parseInt(userId) === req.user.userId) {
       return res.status(400).json({ error: '自分自身を削除することはできません' });
     }
@@ -701,7 +696,6 @@ app.delete('/api/output-rules/:id', authenticateToken, logActivity('出力ルー
 // プロンプト組立関数（非同期）
 async function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile, output_rule_id) {
   try {
-    // DBから出力ルールを取得
     const ruleResult = await pool.query(
       'SELECT rule_text FROM output_rules WHERE id = $1',
       [output_rule_id]
@@ -713,12 +707,10 @@ async function buildPrompt(jobType, industry, companyRequirement, offerTemplate,
 
     const outputRuleText = ruleResult.rows[0].rule_text;
 
-    // DBから全職種定義を取得
     const result = await pool.query(
       'SELECT name, definition FROM job_types ORDER BY created_at ASC'
     );
 
-    // 職種定義を辞書形式に変換
     const jobDefinitions = {};
     result.rows.forEach(row => {
       jobDefinitions[row.name] = row.definition;
@@ -726,7 +718,6 @@ async function buildPrompt(jobType, industry, companyRequirement, offerTemplate,
 
     const jobDefinition = jobDefinitions[jobType] || '';
 
-    // 職種定義の一覧を文字列で作成
     const jobDefinitionsText = result.rows
       .map(row => `${row.name}：${row.definition}`)
       .join('\n');
@@ -761,7 +752,7 @@ ${studentProfile}
   }
 }
 
-// コメント生成エンドポイント
+// コメント生成エンドポイント（履歴保存付き）
 app.post('/api/generate', authenticateToken, logActivity('コメント生成'), async (req, res) => {
   try {
     const {
@@ -777,7 +768,6 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
       return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
-    // プロンプト組立
     const { systemPrompt, userMessage } = await buildPrompt(
       job_type,
       industry,
@@ -787,7 +777,6 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
       output_rule_id
     );
 
-    // Claude API呼び出し
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
@@ -804,10 +793,56 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
       ? message.content[0].text
       : '';
 
+    // 生成履歴をデータベースに保存
+    await pool.query(
+      'INSERT INTO generation_history (user_id, username, job_type, industry, student_profile, generated_comment) VALUES ($1, $2, $3, $4, $5, $6)',
+      [req.user.userId, req.user.username, job_type, industry, student_profile, generatedComment]
+    );
+
     res.json({ success: true, comment: generatedComment });
   } catch (error) {
     console.error('Error generating comment:', error);
     res.status(500).json({ error: 'コメント生成に失敗しました' });
+  }
+});
+
+// ========== 生成履歴 API ==========
+
+// 自分の生成履歴取得
+app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
+  try {
+    const { limit = 50 } = req.query;
+    
+    const result = await pool.query(
+      'SELECT id, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+      [req.user.userId, limit]
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching generation history:', error);
+    res.status(500).json({ error: '生成履歴の取得に失敗しました' });
+  }
+});
+
+// 特定の生成履歴削除
+app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res) => {
+  try {
+    const historyId = req.params.id;
+    
+    const result = await pool.query(
+      'DELETE FROM generation_history WHERE id = $1 AND user_id = $2 RETURNING id',
+      [historyId, req.user.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '履歴が見つかりません' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting generation history:', error);
+    res.status(500).json({ error: '履歴の削除に失敗しました' });
   }
 });
 
@@ -857,7 +892,21 @@ async function initializeDatabase() {
       )
     `);
 
-    console.log('Database tables created (users, login_logs, activity_logs)');
+    // 生成履歴テーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS generation_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        username VARCHAR(255),
+        job_type VARCHAR(100),
+        industry VARCHAR(100),
+        student_profile TEXT,
+        generated_comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('Database tables created (users, login_logs, activity_logs, generation_history)');
 
     // 既存のadminユーザーを削除
     await pool.query('DELETE FROM users WHERE username = $1', ['admin']);

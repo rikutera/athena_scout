@@ -19,8 +19,15 @@ export default function MyPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  // 生成履歴用の状態
+  const [generationHistory, setGenerationHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
   useEffect(() => {
     fetchUserInfo();
+    fetchGenerationHistory();
   }, []);
 
   const fetchUserInfo = async () => {
@@ -39,6 +46,18 @@ export default function MyPage() {
       setError('ユーザー情報の取得に失敗しました');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGenerationHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const response = await apiClient.get('/api/my-generation-history?limit=50');
+      setGenerationHistory(response.data);
+    } catch (error) {
+      console.error('Error fetching generation history:', error);
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -74,16 +93,12 @@ export default function MyPage() {
 
       const response = await apiClient.put('/api/auth/me', updateData);
       
-      // ローカルステートを更新
       setUser(response.data.user);
-      
-      // Context APIのグローバルステートを更新
       updateUser(response.data.user);
       
       setMessage('ユーザー情報を更新しました');
       setIsEditing(false);
       
-      // パスワード入力フィールドをクリア
       setFormData({
         ...formData,
         password: '',
@@ -108,6 +123,34 @@ export default function MyPage() {
     });
   };
 
+  const handleShowHistoryDetail = (history) => {
+    setSelectedHistory(history);
+    setShowHistoryModal(true);
+  };
+
+  const handleCloseHistoryModal = () => {
+    setShowHistoryModal(false);
+    setSelectedHistory(null);
+  };
+
+  const handleDeleteHistory = async (historyId) => {
+    if (!window.confirm('この履歴を削除してもよろしいですか？')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/my-generation-history/${historyId}`);
+      setMessage('履歴を削除しました');
+      fetchGenerationHistory();
+      if (selectedHistory?.id === historyId) {
+        handleCloseHistoryModal();
+      }
+    } catch (error) {
+      console.error('Error deleting history:', error);
+      setError('履歴の削除に失敗しました');
+    }
+  };
+
   if (loading) {
     return <div className="mypage"><p>読み込み中...</p></div>;
   }
@@ -126,43 +169,93 @@ export default function MyPage() {
 
       {!isEditing ? (
         // 表示モード
-        <div className="user-info-display">
-          <div className="info-card">
-            <h2>ユーザー情報</h2>
-            
-            <div className="info-row">
-              <label>ユーザー名</label>
-              <p>{user?.username}</p>
-            </div>
+        <>
+          <div className="user-info-display">
+            <div className="info-card">
+              <h2>ユーザー情報</h2>
+              
+              <div className="info-row">
+                <label>ユーザー名</label>
+                <p>{user?.username}</p>
+              </div>
 
-            <div className="info-row">
-              <label>ユーザーステータス</label>
-              <p>
-                <span className={`status-badge ${user?.user_status}`}>
-                  {user?.user_status === 'active' ? 'アクティブ' : 'アクティブでない'}
-                </span>
-              </p>
-            </div>
+              <div className="info-row">
+                <label>ユーザーステータス</label>
+                <p>
+                  <span className={`status-badge ${user?.user_status}`}>
+                    {user?.user_status === 'active' ? 'アクティブ' : 'アクティブでない'}
+                  </span>
+                </p>
+              </div>
 
-            <div className="info-row">
-              <label>ユーザーロール</label>
-              <p>
-                <span className={`role-badge ${user?.user_role}`}>
-                  {user?.user_role === 'admin' ? '管理者' : 'ユーザー'}
-                </span>
-              </p>
-            </div>
+              <div className="info-row">
+                <label>ユーザーロール</label>
+                <p>
+                  <span className={`role-badge ${user?.user_role}`}>
+                    {user?.user_role === 'admin' ? '管理者' : 'ユーザー'}
+                  </span>
+                </p>
+              </div>
 
-            <div className="info-row">
-              <label>登録日時</label>
-              <p>{new Date(user?.created_at).toLocaleString('ja-JP')}</p>
-            </div>
+              <div className="info-row">
+                <label>登録日時</label>
+                <p>{new Date(user?.created_at).toLocaleString('ja-JP')}</p>
+              </div>
 
-            <button onClick={() => setIsEditing(true)} className="btn-edit">
-              編集
-            </button>
+              <button onClick={() => setIsEditing(true)} className="btn-edit">
+                編集
+              </button>
+            </div>
           </div>
-        </div>
+
+          {/* 生成履歴セクション */}
+          <div className="generation-history-section">
+            <div className="section-header">
+              <h2>生成メッセージ履歴</h2>
+              <span className="history-count">全{generationHistory.length}件</span>
+            </div>
+
+            {historyLoading ? (
+              <p>読み込み中...</p>
+            ) : generationHistory.length === 0 ? (
+              <p className="no-history">まだ生成履歴がありません</p>
+            ) : (
+              <div className="history-list">
+                {generationHistory.map((history) => (
+                  <div key={history.id} className="history-item">
+                    <div className="history-header">
+                      <div className="history-meta">
+                        <span className="history-job-type">{history.job_type}</span>
+                        <span className="history-industry">{history.industry}</span>
+                      </div>
+                      <span className="history-date">
+                        {new Date(history.created_at).toLocaleString('ja-JP')}
+                      </span>
+                    </div>
+                    <div className="history-preview">
+                      {history.generated_comment.substring(0, 100)}
+                      {history.generated_comment.length > 100 && '...'}
+                    </div>
+                    <div className="history-actions">
+                      <button 
+                        onClick={() => handleShowHistoryDetail(history)}
+                        className="btn-view-detail"
+                      >
+                        詳細
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteHistory(history.id)}
+                        className="btn-delete-history"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         // 編集モード
         <div className="user-info-edit">
@@ -199,7 +292,6 @@ export default function MyPage() {
               />
             </div>
 
-            {/* 管理者のみステータスとロールを編集可能 */}
             {user?.user_role === 'admin' ? (
               <>
                 <div className="form-group">
@@ -253,6 +345,62 @@ export default function MyPage() {
               <button onClick={handleCancel} className="btn-cancel">
                 キャンセル
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 履歴詳細モーダル */}
+      {showHistoryModal && selectedHistory && (
+        <div className="modal-overlay" onClick={handleCloseHistoryModal}>
+          <div className="modal-content history-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>生成メッセージ詳細</h2>
+              <button className="modal-close" onClick={handleCloseHistoryModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>生成情報</h3>
+                <div className="detail-row">
+                  <span className="detail-label">職種：</span>
+                  <span>{selectedHistory.job_type}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">業種：</span>
+                  <span>{selectedHistory.industry}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">生成日時：</span>
+                  <span>{new Date(selectedHistory.created_at).toLocaleString('ja-JP')}</span>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>学生プロフィール</h3>
+                <div className="detail-content">
+                  {selectedHistory.student_profile}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>生成メッセージ</h3>
+                <div className="detail-content generated-message">
+                  {selectedHistory.generated_comment}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button 
+                  onClick={() => handleDeleteHistory(selectedHistory.id)}
+                  className="btn-delete-modal"
+                >
+                  削除
+                </button>
+                <button onClick={handleCloseHistoryModal} className="btn-close-modal">
+                  閉じる
+                </button>
+              </div>
             </div>
           </div>
         </div>
