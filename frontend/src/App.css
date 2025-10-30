@@ -121,3 +121,14 @@ main {
   width: 100%;
 }
 
+
+/* ダークモード無効化 */
+:root {
+  color-scheme: light only;
+}
+
+html, body {
+  color-scheme: light;
+  background-color: #f5f5f5;
+  color: #333;
+}
