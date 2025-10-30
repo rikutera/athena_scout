@@ -1,20 +1,22 @@
 import axios from 'axios';
 
-// axios インスタンスを作成
 console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 });
 
-
-// リクエストインターセプター - トークンを自動付与
+// リクエストインターセプター - トークンを自動付与 & アクティビティ更新
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // APIリクエストのたびに最終アクティビティを更新
+    localStorage.setItem('lastActivity', Date.now().toString());
+    
     return config;
   },
   (error) => {
@@ -32,6 +34,7 @@ apiClient.interceptors.response.use(
       // トークンが無効な場合、ログイン画面にリダイレクト
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('lastActivity');
       window.location.href = '/login';
     }
     return Promise.reject(error);

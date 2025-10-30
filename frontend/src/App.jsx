@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { useUser } from './contexts/UserContext'
+import { useSessionTimeout } from './hooks/useSessionTimeout'
 import RecruitmentToolForm from './components/RecruitmentToolForm'
 import JobTypesPage from './pages/JobTypesPage'
 import OutputRulesPage from './pages/OutputRulesPage'
@@ -9,11 +10,13 @@ import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import SessionTimeoutWarning from './components/SessionTimeoutWarning'
 import './App.css'
 
 function App() {
   const { user, isAuthenticated, login, logout } = useUser();
   const navigate = useNavigate();
+  const { showWarning, timeLeft, extendSession, logout: timeoutLogout } = useSessionTimeout();
 
   const handleLoginSuccess = (userData) => {
     login(userData);
@@ -23,6 +26,11 @@ function App() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleTimeoutLogout = () => {
+    logout();
+    timeoutLogout();
   };
 
   // ログインページ
@@ -100,6 +108,14 @@ function App() {
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </main>
+
+      {showWarning && (
+        <SessionTimeoutWarning
+          timeLeft={timeLeft}
+          onExtend={extendSession}
+          onLogout={handleTimeoutLogout}
+        />
+      )}
     </div>
   )
 }
