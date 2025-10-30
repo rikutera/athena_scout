@@ -120,15 +120,4 @@ main {
   flex: 1;
   width: 100%;
 }
-/* ナビゲーションロゴアイコン */
-.nav-logo-icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
 
-.nav-logo {
-  display: flex;
-  align-items: center;
-}
