@@ -57,22 +57,24 @@ function App() {
                 オファーメッセージ生成
               </Link>
             </li>
-            <li className="nav-item">
-              <Link to="/job-types" className="nav-link">
-                職業適性管理
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/output-rules" className="nav-link">
-                出力ルール管理
-              </Link>
-            </li>
             {user?.user_role === 'admin' && (
-              <li className="nav-item">
-                <Link to="/users" className="nav-link">
-                  ユーザー管理
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link to="/job-types" className="nav-link">
+                    職業適性管理
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/output-rules" className="nav-link">
+                    出力ルール管理
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/users" className="nav-link">
+                    ユーザー管理
+                  </Link>
+                </li>
+              </>
             )}
             <li className="nav-item nav-user">
               <Link to="/my-page" className="nav-link nav-username">
@@ -91,11 +93,11 @@ function App() {
           <Route path="/" element={<RecruitmentToolForm />} />
           <Route 
             path="/job-types" 
-            element={<ProtectedRoute element={<JobTypesPage />} isAuthenticated={isAuthenticated} />} 
+            element={<AdminRoute element={<JobTypesPage />} />} 
           />
           <Route 
             path="/output-rules" 
-            element={<ProtectedRoute element={<OutputRulesPage />} isAuthenticated={isAuthenticated} />} 
+            element={<AdminRoute element={<OutputRulesPage />} />} 
           />
           <Route 
             path="/my-page" 
