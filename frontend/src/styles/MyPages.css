@@ -577,3 +577,19 @@
     max-height: 90vh;
   }
 }
+
+/* テンプレート名のスタイル */
+.history-template-name {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* 詳細情報のテキスト色 */
+.detail-section .detail-row span:not(.detail-label) {
+  color: #333;
+}
