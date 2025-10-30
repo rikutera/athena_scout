@@ -14,6 +14,7 @@ export default function RecruitmentToolForm() {
   const [offerTemplate, setOfferTemplate] = useState('');
   const [outputRuleId, setOutputRuleId] = useState('');
   const [studentProfile, setStudentProfile] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   // 保存済みテンプレート
   const [savedTemplates, setSavedTemplates] = useState([]);
@@ -148,6 +149,14 @@ export default function RecruitmentToolForm() {
     setOutputRuleId(outputRules[0]?.id || '');
   };
 
+  // トーストメッセージを表示
+  const showToast = (message) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage('');
+    }, 2000);
+  };
+
   // コメント生成
   const handleGenerateComment = async () => {
     if (!jobType || !industry || !companyRequirement || !offerTemplate || !studentProfile || !outputRuleId) {
@@ -178,7 +187,7 @@ export default function RecruitmentToolForm() {
   // 結果をコピー
   const handleCopyComment = () => {
     navigator.clipboard.writeText(generatedComment);
-    alert('コピーしました');
+    showToast('コピーしました ✓');
   };
 
   // 学生プロフィールをクリア
@@ -193,10 +202,10 @@ export default function RecruitmentToolForm() {
     try {
       const text = await navigator.clipboard.readText();
       setStudentProfile(text);
-      alert('貼り付けました');
+      showToast('貼り付けました ✓');
     } catch (error) {
       console.error('Error pasting from clipboard:', error);
-      alert('貼り付けに失敗しました。ブラウザの設定を確認してください。');
+      showToast('貼り付けに失敗しました');
     }
   };
 
@@ -361,6 +370,12 @@ export default function RecruitmentToolForm() {
             </button>
           </div>
         </section>
+      )}
+      {/* トースト通知 */}
+      {toastMessage && (
+        <div className="toast-notification">
+          {toastMessage}
+        </div>
       )}
     </div>
   );
