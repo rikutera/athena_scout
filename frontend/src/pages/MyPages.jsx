@@ -243,12 +243,12 @@ export default function MyPage() {
                       >
                         詳細
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDeleteHistory(history.id)}
                         className="btn-delete-history"
                       >
                         削除
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}
@@ -395,12 +395,12 @@ export default function MyPage() {
               </div>
 
               <div className="modal-actions">
-                <button
+                {/* <button
                   onClick={() => handleDeleteHistory(selectedHistory.id)}
                   className="btn-delete-modal"
                 >
                   削除
-                </button>
+                </button> */}
                 <button onClick={handleCloseHistoryModal} className="btn-close-modal">
                   閉じる
                 </button>
