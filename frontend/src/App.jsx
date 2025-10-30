@@ -49,8 +49,10 @@ function App() {
       <nav className="navbar">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            スカウトAIライター
+            <img src="/favicon.ico" alt="logo" className="nav-logo-icon" />
+            Athena Scout
           </Link>
+
           <ul className="nav-menu">
             <li className="nav-item">
               <Link to="/" className="nav-link">
@@ -91,21 +93,21 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<RecruitmentToolForm />} />
-          <Route 
-            path="/job-types" 
-            element={<AdminRoute element={<JobTypesPage />} />} 
+          <Route
+            path="/job-types"
+            element={<AdminRoute element={<JobTypesPage />} />}
           />
-          <Route 
-            path="/output-rules" 
-            element={<AdminRoute element={<OutputRulesPage />} />} 
+          <Route
+            path="/output-rules"
+            element={<AdminRoute element={<OutputRulesPage />} />}
           />
-          <Route 
-            path="/my-page" 
-            element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} 
+          <Route
+            path="/my-page"
+            element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />}
           />
-          <Route 
-            path="/users" 
-            element={<AdminRoute element={<UserManagementPage />} />} 
+          <Route
+            path="/users"
+            element={<AdminRoute element={<UserManagementPage />} />}
           />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
         </Routes>

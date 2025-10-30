@@ -32,7 +32,7 @@ export default function UserManagementPage() {
   const [selectedHistory, setSelectedHistory] = useState(null);
 
   useEffect(() => {
-    document.title = 'ユーザー管理 - 採用ツール';
+    document.title = 'ユーザー管理 - Athena Scout';
     fetchUsers();
   }, []);
 

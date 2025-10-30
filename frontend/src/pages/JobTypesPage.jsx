@@ -10,6 +10,7 @@ export default function JobTypesPage() {
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
+    document.title = '職業適性管理 - Athena Scout';
     fetchJobTypes();
   }, []);
 

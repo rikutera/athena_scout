@@ -8,6 +8,11 @@ export default function LoginPage({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    document.title = 'ログイン - Athena Scout';
+    fetchLoginPage();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');

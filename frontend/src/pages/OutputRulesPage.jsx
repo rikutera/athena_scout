@@ -15,6 +15,7 @@ export default function OutputRulesPage() {
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
+    document.title = '出力ルール管理 - Athena Scout';
     fetchOutputRules();
   }, []);
 
