@@ -10,7 +10,6 @@ export default function LoginPage({ onLoginSuccess }) {
 
   useEffect(() => {
     document.title = 'ログイン - Athena Scout';
-    fetchLoginPage();
   }, []);
 
   const handleLogin = async (e) => {
