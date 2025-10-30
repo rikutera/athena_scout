@@ -23,8 +23,13 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [loginLogs, setLoginLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
-  const [activeTab, setActiveTab] = useState('login'); // 'login' or 'activity'
+  const [generationHistory, setGenerationHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('login'); // 'login', 'activity', or 'generation'
   const [logsLoading, setLogsLoading] = useState(false);
+
+  // 生成履歴詳細モーダル
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState(null);
 
   useEffect(() => {
     document.title = 'ユーザー管理 - 採用ツール';
@@ -84,7 +89,6 @@ export default function UserManagementPage() {
 
     try {
       if (editingUser) {
-        // ユーザー更新
         const updateData = {
           username: formData.username,
           user_status: formData.user_status,
@@ -96,7 +100,6 @@ export default function UserManagementPage() {
         await apiClient.put(`/api/users/${editingUser.id}`, updateData);
         setMessage('ユーザー情報を更新しました');
       } else {
-        // 新規ユーザー作成
         await apiClient.post('/api/users', {
           username: formData.username,
           password: formData.password,
@@ -173,6 +176,12 @@ export default function UserManagementPage() {
         params: { user_id: user.id, limit: 50 }
       });
       setActivityLogs(activityResponse.data);
+
+      // 生成履歴を取得
+      const generationResponse = await apiClient.get('/api/admin/generation-history', {
+        params: { user_id: user.id, limit: 50 }
+      });
+      setGenerationHistory(generationResponse.data);
     } catch (error) {
       console.error('Error fetching logs:', error);
       setError('履歴の取得に失敗しました');
@@ -186,6 +195,17 @@ export default function UserManagementPage() {
     setSelectedUser(null);
     setLoginLogs([]);
     setActivityLogs([]);
+    setGenerationHistory([]);
+  };
+
+  const handleShowDetail = (history) => {
+    setSelectedHistory(history);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedHistory(null);
   };
 
   if (loading) {
@@ -230,12 +250,12 @@ export default function UserManagementPage() {
                     <td>{user.id}</td>
                     <td>{user.username}</td>
                     <td>
-                      <span className={`status-badge ${user.user_status}`}>
+                      <span className={`status-badge ${user.user_status}`}
                         {user.user_status === 'active' ? 'アクティブ' : '無効'}
                       </span>
                     </td>
                     <td>
-                      <span className={`role-badge ${user.user_role}`}>
+                      <span className={`role-badge ${user.user_role}`}
                         {user.user_role === 'admin' ? '管理者' : 'ユーザー'}
                       </span>
                     </td>
@@ -366,6 +386,12 @@ export default function UserManagementPage() {
               >
                 利用履歴
               </button>
+              <button
+                className={`tab ${activeTab === 'generation' ? 'active' : ''}`}
+                onClick={() => setActiveTab('generation')}
+              >
+                生成履歴
+              </button>
             </div>
 
             <div className="modal-body">
@@ -424,8 +450,99 @@ export default function UserManagementPage() {
                       )}
                     </div>
                   )}
+
+                  {activeTab === 'generation' && (
+                    <div className="logs-table">
+                      {generationHistory.length === 0 ? (
+                        <p>生成履歴がありません</p>
+                      ) : (
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>生成日時</th>
+                              <th>職種</th>
+                              <th>業種</th>
+                              <th>生成メッセージ（プレビュー）</th>
+                              <th>操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {generationHistory.map((history) => (
+                              <tr key={history.id}>
+                                <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
+                                <td>{history.job_type}</td>
+                                <td>{history.industry}</td>
+                                <td className="message-preview">
+                                  {history.generated_comment.substring(0, 50)}
+                                  {history.generated_comment.length > 50 && '...'}
+                                </td>
+                                <td>
+                                  <button
+                                    onClick={() => handleShowDetail(history)}
+                                    className="btn-view-detail-small"
+                                  >
+                                    詳細
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 生成履歴詳細モーダル */}
+      {showDetailModal && selectedHistory && (
+        <div className="modal-overlay" onClick={handleCloseDetailModal}>
+          <div className="modal-content detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>生成メッセージ詳細</h2>
+              <button className="modal-close" onClick={handleCloseDetailModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>生成情報</h3>
+                <div className="detail-row">
+                  <span className="detail-label">職種：</span>
+                  <span>{selectedHistory.job_type}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">業種：</span>
+                  <span>{selectedHistory.industry}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">生成日時：</span>
+                  <span>{new Date(selectedHistory.created_at).toLocaleString('ja-JP')}</span>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>学生プロフィール</h3>
+                <div className="detail-content">
+                  {selectedHistory.student_profile}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>生成メッセージ</h3>
+                <div className="detail-content generated-message">
+                  {selectedHistory.generated_comment}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button onClick={handleCloseDetailModal} className="btn-close-modal">
+                  閉じる
+                </button>
+              </div>
             </div>
           </div>
         </div>
