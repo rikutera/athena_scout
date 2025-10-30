@@ -93,13 +93,13 @@ export default function MyPage() {
       }
 
       const response = await apiClient.put('/api/auth/me', updateData);
-      
+
       setUser(response.data.user);
       updateUser(response.data.user);
-      
+
       setMessage('ユーザー情報を更新しました');
       setIsEditing(false);
-      
+
       setFormData({
         ...formData,
         password: '',
@@ -174,7 +174,7 @@ export default function MyPage() {
           <div className="user-info-display">
             <div className="info-card">
               <h2>ユーザー情報</h2>
-              
+
               <div className="info-row">
                 <label>ユーザー名</label>
                 <p>{user?.username}</p>
@@ -226,8 +226,7 @@ export default function MyPage() {
                   <div key={history.id} className="history-item">
                     <div className="history-header">
                       <div className="history-meta">
-                        <span className="history-job-type">{history.job_type}</span>
-                        <span className="history-industry">{history.industry}</span>
+                        <span className="history-template-name">{history.template_name || '未設定'}</span>
                       </div>
                       <span className="history-date">
                         {new Date(history.created_at).toLocaleString('ja-JP')}
@@ -238,13 +237,13 @@ export default function MyPage() {
                       {history.generated_comment.length > 100 && '...'}
                     </div>
                     <div className="history-actions">
-                      <button 
+                      <button
                         onClick={() => handleShowHistoryDetail(history)}
                         className="btn-view-detail"
                       >
                         詳細
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteHistory(history.id)}
                         className="btn-delete-history"
                       >
@@ -364,6 +363,10 @@ export default function MyPage() {
               <div className="detail-section">
                 <h3>生成情報</h3>
                 <div className="detail-row">
+                  <span className="detail-label">テンプレート名：</span>
+                  <span>{selectedHistory.template_name || '未設定'}</span>
+                </div>
+                <div className="detail-row">
                   <span className="detail-label">職種：</span>
                   <span>{selectedHistory.job_type}</span>
                 </div>
@@ -392,7 +395,7 @@ export default function MyPage() {
               </div>
 
               <div className="modal-actions">
-                <button 
+                <button
                   onClick={() => handleDeleteHistory(selectedHistory.id)}
                   className="btn-delete-modal"
                 >

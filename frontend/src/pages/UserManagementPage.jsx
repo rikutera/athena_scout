@@ -460,8 +460,7 @@ export default function UserManagementPage() {
                           <thead>
                             <tr>
                               <th>生成日時</th>
-                              <th>職種</th>
-                              <th>業種</th>
+                              <th>テンプレート名</th>
                               <th>生成メッセージ（プレビュー）</th>
                               <th>操作</th>
                             </tr>
@@ -470,8 +469,7 @@ export default function UserManagementPage() {
                             {generationHistory.map((history) => (
                               <tr key={history.id}>
                                 <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
-                                <td>{history.job_type}</td>
-                                <td>{history.industry}</td>
+                                <td>{history.template_name || '未設定'}</td>
                                 <td className="message-preview">
                                   {history.generated_comment.substring(0, 50)}
                                   {history.generated_comment.length > 50 && '...'}
@@ -510,6 +508,10 @@ export default function UserManagementPage() {
             <div className="modal-body">
               <div className="detail-section">
                 <h3>生成情報</h3>
+                <div className="detail-row">
+                  <span className="detail-label">テンプレート名：</span>
+                  <span>{selectedHistory.template_name || '未設定'}</span>
+                </div>
                 <div className="detail-row">
                   <span className="detail-label">職種：</span>
                   <span>{selectedHistory.job_type}</span>

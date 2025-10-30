@@ -158,6 +158,7 @@ export default function RecruitmentToolForm() {
     setLoading(true);
     try {
       const response = await apiClient.post('/api/generate', {
+        template_name: templateName || '未設定',
         job_type: jobType,
         industry: industry,
         company_requirement: companyRequirement,

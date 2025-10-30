@@ -756,6 +756,7 @@ ${studentProfile}
 app.post('/api/generate', authenticateToken, logActivity('コメント生成'), async (req, res) => {
   try {
     const {
+      template_name,
       job_type,
       industry,
       company_requirement,
@@ -769,6 +770,7 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
     }
 
     const { systemPrompt, userMessage } = await buildPrompt(
+      template_name,
       job_type,
       industry,
       company_requirement,
@@ -795,8 +797,8 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
 
     // 生成履歴をデータベースに保存
     await pool.query(
-      'INSERT INTO generation_history (user_id, username, job_type, industry, student_profile, generated_comment) VALUES ($1, $2, $3, $4, $5, $6)',
-      [req.user.userId, req.user.username, job_type, industry, student_profile, generatedComment]
+      'INSERT INTO generation_history (user_id, username, template_name, job_type, industry, student_profile, generated_comment) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [req.user.userId, req.user.username, template_name, job_type, industry, student_profile, generatedComment]
     );
 
     res.json({ success: true, comment: generatedComment });
@@ -814,7 +816,7 @@ app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
     const { limit = 50 } = req.query;
     
     const result = await pool.query(
-      'SELECT id, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+      'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
       [req.user.userId, limit]
     );
     
@@ -898,6 +900,7 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         username VARCHAR(255),
+        template_name VARCHAR(255),
         job_type VARCHAR(100),
         industry VARCHAR(100),
         student_profile TEXT,
@@ -946,7 +949,7 @@ app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async 
   try {
     const { user_id, limit = 100 } = req.query;
     
-    let query = 'SELECT id, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
+    let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
     let params = [];
     
     if (user_id) {
