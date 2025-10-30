@@ -400,3 +400,115 @@
     padding: 15px;
   }
 }
+/* 生成履歴用の追加スタイル */
+.message-preview {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.btn-view-detail-small {
+  padding: 6px 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-view-detail-small:hover {
+  background-color: #2980b9;
+}
+
+/* 詳細モーダルスタイル */
+.detail-modal {
+  width: 90%;
+  max-width: 800px;
+}
+
+.detail-section {
+  margin-bottom: 25px;
+}
+
+.detail-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #3498db;
+  font-size: 1.1em;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 5px;
+}
+
+.detail-row {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #555;
+  min-width: 100px;
+}
+
+.detail-content {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  line-height: 1.8;
+  color: #2c3e50;
+  white-space: pre-wrap;
+}
+
+.generated-message {
+  background-color: #e3f2fd;
+  border-left: 4px solid #3498db;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.btn-close-modal {
+  flex: 1;
+  padding: 10px 20px;
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-close-modal:hover {
+  background-color: #7f8c8d;
+}
+
+/* タブが3つになったときの調整 */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ecf0f1;
+  background-color: #f8f9fa;
+}
+
+.tab {
+  flex: 1;
+  padding: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #7f8c8d;
+  transition: all 0.3s;
+  border-bottom: 3px solid transparent;
+}

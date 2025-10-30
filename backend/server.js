@@ -941,3 +941,26 @@ initializeDatabase().then(() => {
     console.log(`Server running on ${HOST}:${PORT}`);
   });
 });
+// 管理者用：特定ユーザーの生成履歴取得
+app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { user_id, limit = 100 } = req.query;
+    
+    let query = 'SELECT id, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
+    let params = [];
+    
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
+    params.push(limit);
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching generation history:', error);
+    res.status(500).json({ error: '生成履歴の取得に失敗しました' });
+  }
+});
