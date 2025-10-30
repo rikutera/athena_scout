@@ -41,7 +41,7 @@ function App() {
       <nav className="navbar">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            🎯 採用ツール
+            スカウトAIライター
           </Link>
           <ul className="nav-menu">
             <li className="nav-item">
