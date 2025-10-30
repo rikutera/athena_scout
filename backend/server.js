@@ -770,7 +770,6 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
     }
 
     const { systemPrompt, userMessage } = await buildPrompt(
-      template_name,
       job_type,
       industry,
       company_requirement,
