@@ -32,7 +32,6 @@ export default function RecruitmentToolForm() {
 
   // 初期ロード
   useEffect(() => {
-    console.log('RecruitmentToolForm mounted!');
     document.title = 'オファーメッセージ生成 - Athena Scout';
     fetchTemplates();
     fetchJobTypes();

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
@@ -13,10 +13,10 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // APIリクエストのたびに最終アクティビティを更新
     localStorage.setItem('lastActivity', Date.now().toString());
-    
+
     return config;
   },
   (error) => {
