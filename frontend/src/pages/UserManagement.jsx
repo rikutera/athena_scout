@@ -250,12 +250,12 @@ export default function UserManagementPage() {
                     <td>{user.id}</td>
                     <td>{user.username}</td>
                     <td>
-                      <span className={`status-badge ${user.user_status}`}>
+                      <span className={`status-badge ${user.user_status}`}
                         {user.user_status === 'active' ? 'アクティブ' : '無効'}
                       </span>
                     </td>
                     <td>
-                      <span className={`role-badge ${user.user_role}`}>
+                      <span className={`role-badge ${user.user_role}`}
                         {user.user_role === 'admin' ? '管理者' : 'ユーザー'}
                       </span>
                     </td>
