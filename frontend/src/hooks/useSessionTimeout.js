@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TIMEOUT_DURATION = 2 * 60 * 1000; // テスト用: 2分
-const WARNING_DURATION = 1 * 60 * 1000; // テスト用: 1分前に警告
-const CHECK_INTERVAL = 10 * 1000; // テスト用: 10秒ごとにチェック
+const TIMEOUT_DURATION = 30 * 60 * 1000; // 30分
+const WARNING_DURATION = 5 * 60 * 1000; // 5分前に警告
+const CHECK_INTERVAL = 60 * 1000; // 1分ごとにチェック
 
 export const useSessionTimeout = () => {
   const navigate = useNavigate();
