@@ -47,7 +47,7 @@ export default function LoginPage({ onLoginSuccess }) {
     <div className="login-page">
       <div className="login-container">
         <div className="login-card">
-          <h1>🎯 採用ツール</h1>
+          <h1>Athena Scout</h1>
           <h2>ログイン</h2>
 
           <form onSubmit={handleLogin}>
