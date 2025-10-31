@@ -32,7 +32,7 @@ export default function RecruitmentToolForm() {
 
   // 初期ロード
   useEffect(() => {
-    document.title = 'オファーメッセージ生成 - Athena Scout';
+    document.title = 'メッセージ生成 - Athena Scout';
     fetchTemplates();
     fetchJobTypes();
     fetchOutputRules();
@@ -210,7 +210,7 @@ export default function RecruitmentToolForm() {
 
   return (
     <div className="recruitment-tool">
-      <h1>オファーメッセージ生成</h1>
+      <h1>メッセージ生成</h1>
 
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <Link to="/job-types" className="btn-nav">
