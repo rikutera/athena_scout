@@ -256,7 +256,9 @@ export default function UserManagementPage() {
                     </td>
                     <td>
                       <span className={`role-badge ${user.user_role}`}>
-                        {user.user_role === 'admin' ? '管理者' : 'ユーザー'}
+                        {user.user_role === 'admin' && '管理者'}
+                        {user.user_role === 'manager' && '責任者'}
+                        {user.user_role === 'user' && 'ユーザー'}
                       </span>
                     </td>
                     <td>{new Date(user.created_at).toLocaleString('ja-JP')}</td>

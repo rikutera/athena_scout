@@ -121,6 +121,11 @@
   color: #856404;
 }
 
+.role-badge.manager {
+  background-color: #ff9800;
+  color: white;
+}
+
 .role-badge.user {
   background-color: #d1ecf1;
   color: #0c5460;
