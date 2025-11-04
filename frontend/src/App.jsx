@@ -102,7 +102,7 @@ function App() {
           />
           <Route
             path="/output-rules"
-            element={<AdminRoute element={<OutputRulesPage />} />}
+            element={<AdminOrManagerRoute element={<OutputRulesPage />} />}
           />
           <Route
             path="/my-page"

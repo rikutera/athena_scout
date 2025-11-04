@@ -629,7 +629,7 @@ app.delete('/api/job-types/:id', authenticateToken, requireAdminOrManager, logAc
 // ========== 出力ルール管理 ==========
 
 // 出力ルール一覧取得
-app.get('/api/output-rules', authenticateToken, async (req, res) => {
+app.get('/api/output-rules', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
@@ -642,7 +642,7 @@ app.get('/api/output-rules', authenticateToken, async (req, res) => {
 });
 
 // 出力ルール詳細取得
-app.get('/api/output-rules/:id', authenticateToken, async (req, res) => {
+app.get('/api/output-rules/:id', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM output_rules WHERE id = $1',
@@ -659,7 +659,7 @@ app.get('/api/output-rules/:id', authenticateToken, async (req, res) => {
 });
 
 // 出力ルール作成
-app.post('/api/output-rules', authenticateToken, logActivity('出力ルール作成'), async (req, res) => {
+app.post('/api/output-rules', authenticateToken, requireAdminOrManager, logActivity('出力ルール作成'), async (req, res) => {
   try {
     const { rule_name, rule_text, description, is_active } = req.body;
 
