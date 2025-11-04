@@ -8,6 +8,7 @@ import OutputRulesPage from './pages/OutputRulesPage'
 import LoginPage from './pages/LoginPage'
 import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
+import TermsPage from './pages/TermsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminOrManagerRoute from './components/AdminOrManagerRoute'
@@ -113,6 +114,7 @@ function App() {
             element={<AdminRoute element={<UserManagementPage />} />}
           />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="/terms" element={<ProtectedRoute element={<TermsPage />} isAuthenticated={isAuthenticated} />} />
         </Routes>
       </main>
 
