@@ -58,7 +58,7 @@ function App() {
           <ul className="nav-menu">
             <li className="nav-item">
               <Link to="/" className="nav-link">
-                オファーメッセージ生成
+                スカウトメッセージ生成
               </Link>
             </li>
             {(user?.user_role === 'admin' || user?.user_role === 'manager') && (

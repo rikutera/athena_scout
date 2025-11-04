@@ -293,7 +293,7 @@ export default function RecruitmentToolForm() {
         </div>
 
         <div className="form-group">
-          <label>オファー文テンプレート *</label>
+          <label>スカウトメッセージテンプレート *</label>
           <textarea
             value={offerTemplate}
             onChange={(e) => setOfferTemplate(e.target.value)}
