@@ -981,19 +981,18 @@ async function initializeDatabase() {
 
     console.log('Database tables created (users, login_logs, activity_logs, generation_history)');
 
-    // 既存のadminユーザーを削除
-    await pool.query('DELETE FROM users WHERE username = $1', ['admin']);
-    console.log('Deleted existing admin user (if exists)');
-
-    // 新しいadminユーザーを作成
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    console.log('Generated password hash for admin');
-
-    await pool.query(
-      'INSERT INTO users (username, password_hash, user_role) VALUES ($1, $2, $3)',
-      ['admin', hashedPassword, 'admin']
-    );
-    console.log('Created new admin user with correct password_hash');
+    // 管理者ユーザーを存在しない場合のみ作成（シーケンスを無駄に進めない）
+    const adminExists = await pool.query('SELECT 1 FROM users WHERE username = $1 LIMIT 1', ['admin']);
+    if (adminExists.rows.length === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        'INSERT INTO users (username, password_hash, user_role) VALUES ($1, $2, $3)',
+        ['admin', hashedPassword, 'admin']
+      );
+      console.log('Created default admin user');
+    } else {
+      console.log('Admin user already exists');
+    }
 
   } catch (error) {
     console.error('Database initialization error:', error);
