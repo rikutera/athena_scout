@@ -348,6 +348,7 @@ export default function UserManagementPage() {
                 required
               >
                 <option value="user">ユーザー</option>
+                <option value="manager">責任者</option>
                 <option value="admin">管理者</option>
               </select>
             </div>
