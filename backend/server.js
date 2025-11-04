@@ -559,7 +559,7 @@ app.delete('/api/templates/:id', authenticateToken, logActivity('テンプレー
 // ========== 職業適性管理 ==========
 
 // 職業適性一覧取得
-app.get('/api/job-types', authenticateToken, requireAdminOrManager, async (req, res) => {
+app.get('/api/job-types', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, name, definition FROM job_types ORDER BY created_at ASC'
@@ -627,7 +627,7 @@ app.delete('/api/job-types/:id', authenticateToken, requireAdminOrManager, logAc
 // ========== 出力ルール管理 ==========
 
 // 出力ルール一覧取得
-app.get('/api/output-rules', authenticateToken, requireAdminOrManager, async (req, res) => {
+app.get('/api/output-rules', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
