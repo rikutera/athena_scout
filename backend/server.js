@@ -812,6 +812,23 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
       ? message.content[0].text
       : '';
 
+    // ========== API使用量記録（追加部分）==========
+    const usage = message.usage;
+    const inputTokens = usage.input_tokens;
+    const outputTokens = usage.output_tokens;
+    const totalTokens = inputTokens + outputTokens;
+    
+    // コスト計算（Claude Sonnet 4の料金）
+    const inputCost = (inputTokens / 1000000) * 3.00;
+    const outputCost = (outputTokens / 1000000) * 15.00;
+    const totalCost = inputCost + outputCost;
+
+    await pool.query(
+      'INSERT INTO api_usage_logs (input_tokens, output_tokens, total_tokens, total_cost) VALUES ($1, $2, $3, $4)',
+      [inputTokens, outputTokens, totalTokens, totalCost]
+    );
+    // ========== API使用量記録ここまで ==========
+
     // 生成履歴をデータベースに保存
     await pool.query(
       'INSERT INTO generation_history (user_id, username, template_name, job_type, industry, student_profile, generated_comment) VALUES ($1, $2, $3, $4, $5, $6, $7)',
@@ -822,6 +839,42 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
   } catch (error) {
     console.error('Error generating comment:', error);
     res.status(500).json({ error: 'コメント生成に失敗しました' });
+  }
+});
+
+// ========== API使用量統計 API（管理者のみ）==========
+
+// API使用量統計取得
+app.get('/api/admin/usage-stats', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // 全期間の合計
+    const totalResult = await pool.query(`
+      SELECT 
+        COUNT(*) as total_requests,
+        SUM(total_tokens) as total_tokens,
+        SUM(total_cost) as total_cost
+      FROM api_usage_logs
+    `);
+
+    // 月別の統計
+    const monthlyResult = await pool.query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM') as month,
+        COUNT(*) as requests,
+        SUM(total_tokens) as tokens,
+        SUM(total_cost) as cost
+      FROM api_usage_logs
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+      ORDER BY month DESC
+    `);
+
+    res.json({
+      total: totalResult.rows[0],
+      monthly: monthlyResult.rows
+    });
+  } catch (error) {
+    console.error('Error fetching usage stats:', error);
+    res.status(500).json({ error: '使用量統計の取得に失敗しました' });
   }
 });
 

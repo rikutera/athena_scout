@@ -209,6 +209,16 @@ export default function MyPage() {
                 編集
               </button>
             </div>
+
+            {/* 管理者専用リンク（追加） */}
+            {user?.user_role === 'admin' && (
+              <div className="info-card admin-section" style={{ marginTop: '20px' }}>
+                <h2>管理機能</h2>
+                <Link to="/admin/usage" className="btn-edit" style={{ display: 'inline-block', textDecoration: 'none', textAlign: 'center' }}>
+                  API使用量を確認
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* 生成履歴セクション */}

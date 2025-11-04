@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
 import TermsPage from './pages/TermsPage'
+import AdminUsageDashboard from './pages/AdminUsageDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminOrManagerRoute from './components/AdminOrManagerRoute'
@@ -102,6 +103,7 @@ function App() {
           <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
           <Route path="/users" element={<AdminRoute element={<UserManagementPage />} />} />
+          <Route path="/admin/usage" element={<AdminRoute element={<AdminUsageDashboard />} />} />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </main>
