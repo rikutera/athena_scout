@@ -485,7 +485,6 @@ app.get('/api/templates/:id', authenticateToken, async (req, res) => {
 app.post('/api/templates', authenticateToken, logActivity('テンプレート作成'), async (req, res) => {
   try {
     const {
-      company_id,
       template_name,
       job_type,
       industry,
@@ -494,13 +493,13 @@ app.post('/api/templates', authenticateToken, logActivity('テンプレート作
       output_rule_id,
     } = req.body;
 
-    if (!company_id || !template_name) {
+    if (!template_name) {
       return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
     const result = await pool.query(
-      'INSERT INTO templates (company_id, template_name, job_type, industry, company_requirement, offer_template, output_rule_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [company_id, template_name, job_type, industry, company_requirement, offer_template, output_rule_id]
+      'INSERT INTO templates (template_name, job_type, industry, company_requirement, offer_template, output_rule_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [template_name, job_type, industry, company_requirement, offer_template, output_rule_id]
     );
 
     res.json({ success: true, id: result.rows[0].id });
@@ -518,7 +517,6 @@ app.post('/api/templates', authenticateToken, logActivity('テンプレート作
 app.put('/api/templates/:id', authenticateToken, logActivity('テンプレート更新'), async (req, res) => {
   try {
     const {
-      company_id,
       template_name,
       job_type,
       industry,
@@ -528,8 +526,8 @@ app.put('/api/templates/:id', authenticateToken, logActivity('テンプレート
     } = req.body;
 
     const result = await pool.query(
-      'UPDATE templates SET company_id = $1, template_name = $2, job_type = $3, industry = $4, company_requirement = $5, offer_template = $6, output_rule_id = $7, updated_at = NOW() WHERE id = $8 RETURNING id',
-      [company_id, template_name, job_type, industry, company_requirement, offer_template, output_rule_id, req.params.id]
+      'UPDATE templates SET template_name = $1, job_type = $2, industry = $3, company_requirement = $4, offer_template = $5, output_rule_id = $6, updated_at = NOW() WHERE id = $7 RETURNING id',
+      [template_name, job_type, industry, company_requirement, offer_template, output_rule_id, req.params.id]
     );
 
     if (result.rows.length === 0) {

@@ -5,7 +5,6 @@ import '../styles/RecruitmentToolForm.css';
 
 export default function RecruitmentToolForm() {
   // フォーム状態
-  const [companyId] = useState('company_001');
   const [templateName, setTemplateName] = useState('');
   const [editingTemplateId, setEditingTemplateId] = useState(null);
   const [jobType, setJobType] = useState('');
@@ -41,9 +40,7 @@ export default function RecruitmentToolForm() {
   // 保存済みテンプレート一覧取得
   const fetchTemplates = async () => {
     try {
-      const response = await apiClient.get('/api/templates', {
-        params: { company_id: companyId },
-      });
+      const response = await apiClient.get('/api/templates');
       setSavedTemplates(response.data);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -108,7 +105,6 @@ export default function RecruitmentToolForm() {
       if (editingTemplateId) {
         // 既存テンプレート更新
         await apiClient.put(`/api/templates/${editingTemplateId}`, {
-          company_id: companyId,
           template_name: templateName,
           job_type: jobType,
           industry: industry,
@@ -120,7 +116,6 @@ export default function RecruitmentToolForm() {
       } else {
         // 新規テンプレート作成
         await apiClient.post('/api/templates', {
-          company_id: companyId,
           template_name: templateName,
           job_type: jobType,
           industry: industry,
