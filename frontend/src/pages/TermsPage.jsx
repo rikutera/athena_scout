@@ -1,5 +1,5 @@
 import React from 'react';
-import './TermsPage.css';
+import '../styles/TermsPage.css';
 
 function TermsPage() {
   return (
