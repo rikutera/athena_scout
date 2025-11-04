@@ -211,6 +211,15 @@ export default function RecruitmentToolForm() {
   return (
     <div className="recruitment-tool">
       <h1>メッセージ生成</h1>
+      
+      <div className="usage-notice">
+        <h3>⚠️ ご利用前に必ずお読みください</h3>
+        <ul>
+          <li><strong>個人情報（氏名、連絡先、住所等）は入力しないでください</strong></li>
+          <li>生成されたコメントは必ず内容を確認・修正してから使用してください</li>
+          <li>AIが生成した内容のため、不適切な表現が含まれる可能性があります</li>
+        </ul>
+      </div>
 
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <Link to="/job-types" className="btn-nav">

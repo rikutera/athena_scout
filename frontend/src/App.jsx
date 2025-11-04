@@ -116,6 +116,17 @@ function App() {
         </Routes>
       </main>
 
+      <footer className="app-footer">
+        <div className="footer-content">
+          <p>© 2025 [会社名] - Athena Scout（社内専用ツール）</p>
+          <div className="footer-links">
+            <Link to="/terms">利用規約</Link>
+            <span className="footer-divider">|</span>
+            <span>お問い合わせ: 人事部・情報システム部</span>
+          </div>
+        </div>
+      </footer>
+
       {showWarning && (
         <SessionTimeoutWarning
           timeLeft={timeLeft}
