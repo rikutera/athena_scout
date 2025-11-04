@@ -37,7 +37,7 @@ export default function AdminUsageDashboard() {
     <div className="admin-dashboard">
       <div className="page-header">
         <h1>API使用量</h1>
-        <Link to="/mypage" className="btn-back">
+        <Link to="/my-page" className="btn-back">
           ← マイページに戻る
         </Link>
       </div>
