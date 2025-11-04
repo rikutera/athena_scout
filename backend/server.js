@@ -561,7 +561,7 @@ app.delete('/api/templates/:id', authenticateToken, logActivity('テンプレー
 // ========== 職業適性管理 ==========
 
 // 職業適性一覧取得
-app.get('/api/job-types', authenticateToken, async (req, res) => {
+app.get('/api/job-types', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, name, definition FROM job_types ORDER BY created_at ASC'
@@ -595,7 +595,7 @@ app.post('/api/job-types', authenticateToken, requireAdminOrManager, logActivity
 });
 
 // 職業適性更新
-app.put('/api/job-types/:id', authenticateToken, logActivity('職業適性更新'), async (req, res) => {
+app.put('/api/job-types/:id', authenticateToken, requireAdminOrManager, logActivity('職業適性更新'), async (req, res) => {
   try {
     const { name, definition } = req.body;
 

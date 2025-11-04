@@ -10,6 +10,7 @@ import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import AdminOrManagerRoute from './components/AdminOrManagerRoute'
 import SessionTimeoutWarning from './components/SessionTimeoutWarning'
 import './App.css'
 
@@ -97,7 +98,7 @@ function App() {
           <Route path="/" element={<RecruitmentToolForm />} />
           <Route
             path="/job-types"
-            element={<AdminRoute element={<JobTypesPage />} />}
+            element={<AdminOrManagerRoute element={<JobTypesPage />} />}
           />
           <Route
             path="/output-rules"
