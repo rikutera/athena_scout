@@ -108,7 +108,7 @@ function App() {
 
       <footer className="app-footer">
         <div className="footer-content">
-          <p>© 2025 [会社名] - Athena Scout（社内専用ツール）</p>
+          <p>© 2025 株式会社リクテラ - Athena Scout（社内専用ツール）</p>
           <div className="footer-links">
             <Link to="/terms">利用規約</Link>
             <span className="footer-divider">|</span>
