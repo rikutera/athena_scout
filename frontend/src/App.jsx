@@ -97,24 +97,12 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<RecruitmentToolForm />} />
-          <Route
-            path="/job-types"
-            element={<AdminOrManagerRoute element={<JobTypesPage />} />}
-          />
-          <Route
-            path="/output-rules"
-            element={<AdminOrManagerRoute element={<OutputRulesPage />} />}
-          />
-          <Route
-            path="/my-page"
-            element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />}
-          />
-          <Route
-            path="/users"
-            element={<AdminRoute element={<UserManagementPage />} />}
-          />
-          <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/terms" element={<ProtectedRoute element={<TermsPage />} isAuthenticated={isAuthenticated} />} />
+          <Route path="/job-types" element={<AdminOrManagerRoute element={<JobTypesPage />} />} />
+          <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
+          <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
+          <Route path="/users" element={<AdminRoute element={<UserManagementPage />} />} />
+          <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </main>
 
