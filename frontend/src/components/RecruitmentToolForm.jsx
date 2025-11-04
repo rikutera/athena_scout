@@ -108,6 +108,8 @@ export default function RecruitmentToolForm() {
       if (editingTemplateId) {
         // 既存テンプレート更新
         await apiClient.put(`/api/templates/${editingTemplateId}`, {
+          company_id: companyId,
+          template_name: templateName,
           job_type: jobType,
           industry: industry,
           company_requirement: companyRequirement,
@@ -211,7 +213,7 @@ export default function RecruitmentToolForm() {
   return (
     <div className="recruitment-tool">
       <h1>メッセージ生成</h1>
-      
+
       <div className="usage-notice">
         <h3>⚠️ ご利用前に必ずお読みください</h3>
         <ul>
