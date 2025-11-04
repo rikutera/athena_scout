@@ -193,7 +193,9 @@ export default function MyPage() {
                 <label>ユーザーロール</label>
                 <p>
                   <span className={`role-badge ${user?.user_role}`}>
-                    {user?.user_role === 'admin' ? '管理者' : 'ユーザー'}
+                    {user?.user_role === 'admin' && '管理者'}
+                    {user?.user_role === 'manager' && '責任者'}
+                    {user?.user_role === 'user' && 'ユーザー'}
                   </span>
                 </p>
               </div>
@@ -312,6 +314,7 @@ export default function MyPage() {
                     onChange={(e) => setFormData({ ...formData, user_role: e.target.value })}
                   >
                     <option value="user">ユーザー</option>
+                    <option value="manager">責任者</option>
                     <option value="admin">管理者</option>
                   </select>
                 </div>
