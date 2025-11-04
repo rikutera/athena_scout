@@ -59,7 +59,7 @@ function App() {
                 オファーメッセージ生成
               </Link>
             </li>
-            {user?.user_role === 'admin' && (
+            {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
               <>
                 <li className="nav-item">
                   <Link to="/job-types" className="nav-link">
@@ -71,12 +71,14 @@ function App() {
                     出力ルール管理
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link to="/users" className="nav-link">
-                    ユーザー管理
-                  </Link>
-                </li>
               </>
+            )}
+            {user?.user_role === 'admin' && (
+              <li className="nav-item">
+                <Link to="/users" className="nav-link">
+                  ユーザー管理
+                </Link>
+              </li>
             )}
             <li className="nav-item nav-user">
               <Link to="/my-page" className="nav-link nav-username">

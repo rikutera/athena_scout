@@ -165,7 +165,7 @@ app.post('/api/auth/login', async (req, res) => {
     // ログイン履歴を記録
     const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
     const userAgent = req.headers['user-agent'] || 'unknown';
-    
+
     await pool.query(
       'INSERT INTO login_logs (user_id, username, ip_address, user_agent) VALUES ($1, $2, $3, $4)',
       [user.id, user.username, ipAddress, userAgent]
@@ -267,6 +267,26 @@ const requireAdmin = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error checking admin role:', error);
+    res.status(500).json({ error: '権限チェックに失敗しました' });
+  }
+};
+
+// ========== 管理者または責任者権限チェックミドルウェア ==========
+const requireAdminOrManager = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      'SELECT user_role FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (result.rows.length === 0 ||
+      (result.rows[0].user_role !== 'admin' && result.rows[0].user_role !== 'manager')) {
+      return res.status(403).json({ error: '管理者または責任者権限が必要です' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error checking role:', error);
     res.status(500).json({ error: '権限チェックに失敗しました' });
   }
 };
@@ -385,18 +405,18 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユ�
 app.get('/api/admin/login-logs', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
-    
+
     let query = 'SELECT * FROM login_logs';
     let params = [];
-    
+
     if (user_id) {
       query += ' WHERE user_id = $1';
       params.push(user_id);
     }
-    
+
     query += ' ORDER BY login_at DESC LIMIT $' + (params.length + 1);
     params.push(limit);
-    
+
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -409,18 +429,18 @@ app.get('/api/admin/login-logs', authenticateToken, requireAdmin, async (req, re
 app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
-    
+
     let query = 'SELECT * FROM activity_logs';
     let params = [];
-    
+
     if (user_id) {
       query += ' WHERE user_id = $1';
       params.push(user_id);
     }
-    
+
     query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
     params.push(limit);
-    
+
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -554,7 +574,7 @@ app.get('/api/job-types', authenticateToken, async (req, res) => {
 });
 
 // 職業適性作成
-app.post('/api/job-types', authenticateToken, logActivity('職業適性作成'), async (req, res) => {
+app.post('/api/job-types', authenticateToken, requireAdminOrManager, logActivity('職業適性作成'), async (req, res) => {
   try {
     const { name, definition } = req.body;
 
@@ -596,7 +616,7 @@ app.put('/api/job-types/:id', authenticateToken, logActivity('職業適性更新
 });
 
 // 職業適性削除
-app.delete('/api/job-types/:id', authenticateToken, logActivity('職業適性削除'), async (req, res) => {
+app.delete('/api/job-types/:id', authenticateToken, requireAdminOrManager, logActivity('職業適性削除'), async (req, res) => {
   try {
     await pool.query('DELETE FROM job_types WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -660,7 +680,7 @@ app.post('/api/output-rules', authenticateToken, logActivity('出力ルール作
 });
 
 // 出力ルール更新
-app.put('/api/output-rules/:id', authenticateToken, logActivity('出力ルール更新'), async (req, res) => {
+app.put('/api/output-rules/:id', authenticateToken, requireAdminOrManager, logActivity('出力ルール更新'), async (req, res) => {
   try {
     const { rule_name, rule_text, description, is_active } = req.body;
 
@@ -681,7 +701,7 @@ app.put('/api/output-rules/:id', authenticateToken, logActivity('出力ルール
 });
 
 // 出力ルール削除
-app.delete('/api/output-rules/:id', authenticateToken, logActivity('出力ルール削除'), async (req, res) => {
+app.delete('/api/output-rules/:id', authenticateToken, requireAdminOrManager, logActivity('出力ルール削除'), async (req, res) => {
   try {
     await pool.query('DELETE FROM output_rules WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -813,12 +833,12 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
 app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
   try {
     const { limit = 50 } = req.query;
-    
+
     const result = await pool.query(
       'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
       [req.user.userId, limit]
     );
-    
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching generation history:', error);
@@ -830,16 +850,16 @@ app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
 app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res) => {
   try {
     const historyId = req.params.id;
-    
+
     const result = await pool.query(
       'DELETE FROM generation_history WHERE id = $1 AND user_id = $2 RETURNING id',
       [historyId, req.user.userId]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: '履歴が見つかりません' });
     }
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting generation history:', error);
@@ -868,7 +888,7 @@ async function initializeDatabase() {
         user_role VARCHAR(50) DEFAULT 'user'
       )
     `);
-    
+
     // ログイン履歴テーブル作成
     await pool.query(`
       CREATE TABLE IF NOT EXISTS login_logs (
@@ -880,7 +900,7 @@ async function initializeDatabase() {
         user_agent TEXT
       )
     `);
-    
+
     // 利用履歴テーブル作成
     await pool.query(`
       CREATE TABLE IF NOT EXISTS activity_logs (
@@ -947,18 +967,18 @@ initializeDatabase().then(() => {
 app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
-    
+
     let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
     let params = [];
-    
+
     if (user_id) {
       query += ' WHERE user_id = $1';
       params.push(user_id);
     }
-    
+
     query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
     params.push(limit);
-    
+
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
