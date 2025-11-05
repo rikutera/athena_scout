@@ -87,7 +87,7 @@ function App() {
             {/* 👇 新規追加：使い方リンク（全ユーザー対象） */}
             <li className="nav-item">
               <Link to="/howto" className="nav-link">
-                使い方
+                利用方法・注意事項
               </Link>
             </li>
             <li className="nav-item nav-user">
