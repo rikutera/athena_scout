@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import '../styles/HowToPage.css';
 
 const HowToPage = () => {
   const [openSection, setOpenSection] = useState(null);
+  const sectionRefs = useRef({});
 
   const toggleSection = (section) => {
+    const isOpening = openSection !== section;
     setOpenSection(openSection === section ? null : section);
+    
+    // セクションを開く場合のみスクロール
+    if (isOpening) {
+      setTimeout(() => {
+        sectionRefs.current[section]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 100); // アコーディオンのアニメーション後にスクロール
+    }
   };
 
   const sections = [
@@ -28,7 +41,7 @@ const HowToPage = () => {
                 <li><strong>コメントを生成</strong>：「コメントを生成」ボタンをクリックすると、AIがスカウトメッセージを自動生成します。</li>
                 <li><strong>整合性の確認</strong>：生成されたコメントが、選択したスカウトメッセージテンプレートとの整合性があるか必ず確認してください。</li>
                 <li><strong>必要に応じて調整</strong>：内容によっては、適宜再生成を行うか、コメントを手動で修正してください。</li>
-                <li><strong>コピー</strong>：完成したスカウトメッセージをスカウトツールの本文に挿入してください。</li>
+                <li><strong>ダウンロード</strong>：完成したスカウトメッセージをテキストファイルとしてダウンロードできます。</li>
               </ol>
             </>
           )
@@ -68,13 +81,13 @@ const HowToPage = () => {
                 <li><strong>新規登録</strong>：「新規ユーザーを追加」ボタンからユーザー情報を入力します。</li>
                 <li><strong>権限の種類</strong>：
                   <ul>
-                    <li><strong>一般</strong>：募集要項の生成と自身の生成履歴の閲覧のみ</li>
+                    <li><strong>一般</strong>：募集要項の生成と履歴閲覧のみ</li>
                     <li><strong>責任者</strong>：一般権限 + 職種・出力ルールの管理</li>
                     <li><strong>管理者</strong>：全機能の利用が可能</li>
                   </ul>
                 </li>
                 <li><strong>編集</strong>：ユーザーの情報や権限を変更できます。</li>
-                <li><strong>削除</strong>：不要なユーザーは削除できます。</li>
+                <li><strong>削除</strong>：不要なユーザーは削除できます（生成履歴は残ります）。</li>
               </ul>
             </>
           )
@@ -104,11 +117,11 @@ const HowToPage = () => {
             <>
               <p>以下の方法をお試しください：</p>
               <ul>
-                <li><strong>手動編集</strong>：生成されたメッセージをコピーして、必要な部分を編集してください。</li>
-                <li><strong>再生成</strong>：同じ条件で再度生成すると、異なる表現になる場合があります。</li>
                 <li><strong>出力ルールを変更</strong>：別の出力ルールを選択して再生成してみてください。</li>
                 <li><strong>プロフィール情報を見直し</strong>：添付した学生のプロフィール情報が適切か、必要な情報が含まれているか確認してください。</li>
                 <li><strong>職業適性を見直し</strong>：職業適性の説明文が適切か確認してください（管理者・責任者の場合）。</li>
+                <li><strong>手動編集</strong>：生成されたメッセージをコピーして、必要な部分を編集してください。</li>
+                <li><strong>再生成</strong>：同じ条件で再度生成すると、異なる表現になる場合があります。</li>
                 <li><strong>テンプレートとの整合性確認</strong>：生成されたコメントがテンプレートの意図と合っているか確認し、必要に応じて調整してください。</li>
               </ul>
             </>
@@ -141,7 +154,7 @@ const HowToPage = () => {
             <>
               <p>はい、生成履歴としてシステムに保存されます。</p>
               <ul>
-                <li>マイページからいつでも過去の生成内容を確認できます。</li>
+                <li>マイページからいつでも過去の生成内容を確認・ダウンロードできます。</li>
                 <li>履歴は削除するまで保持されます。</li>
                 <li>管理者は全ユーザーの生成履歴を確認できます（監査ログ機能）。</li>
               </ul>
@@ -149,13 +162,14 @@ const HowToPage = () => {
           )
         },
         {
-          question: '職業適性や出力ルールを削除できない場合があるのはなぜですか？',
+          question: '職業適性や出力ルールを削除するとどうなりますか？',
           answer: (
             <>
-              <p>過去の生成履歴で使用されている職業適性や出力ルールは削除できません。</p>
+              <p>削除された職業適性や出力ルールは、過去の生成履歴では名前のみが表示されます。</p>
               <ul>
-                <li>これは履歴の整合性を保つための仕様です。</li>
-                <li>今後使用しない場合は、編集で名前を変更するなどして管理してください。</li>
+                <li>削除しても過去の生成履歴自体は残ります。</li>
+                <li>ただし、削除されたデータの詳細情報は参照できなくなります。</li>
+                <li>頻繁に使用するものや、履歴参照が必要なものは削除前に十分ご検討ください。</li>
               </ul>
             </>
           )
@@ -179,7 +193,7 @@ const HowToPage = () => {
           answer: (
             <>
               <ul>
-                <li><strong>必ず内容を確認</strong>：AIが生成したメッセージは必ず自身で確認し、必要に応じて修正してください。</li>
+                <li><strong>必ず内容を確認</strong>：AIが生成したメッセージは必ず人間が確認し、適切性を判断してください。</li>
                 <li><strong>テンプレートとの整合性</strong>：生成されたコメントが選択したスカウトメッセージテンプレートと整合性があるか必ず確認してください。</li>
                 <li><strong>学生情報の確認</strong>：添付したプロフィール情報が正確に反映されているか確認してください。</li>
                 <li><strong>適切な表現</strong>：学生に対する敬意を持った表現になっているか、不適切な表現がないか確認してください。</li>
@@ -208,6 +222,7 @@ const HowToPage = () => {
               <ul>
                 <li><strong>用途</strong>：このシステムはスカウトメッセージ作成を支援するためのものです。用途外の利用は控えてください。</li>
                 <li><strong>負荷</strong>：短時間に大量の生成を行うと、システムに負荷がかかります。計画的に利用してください。</li>
+                <li><strong>バックアップ</strong>：重要なメッセージは、生成後すぐにダウンロードして保存してください。</li>
                 <li><strong>学生情報の取り扱い</strong>：学生のプロフィール情報は個人情報です。適切に取り扱い、システム外での不必要な共有は避けてください。</li>
                 <li><strong>サポート</strong>：システムに問題が発生した場合は、管理者に報告してください。</li>
               </ul>
@@ -221,6 +236,7 @@ const HowToPage = () => {
               <ul>
                 <li><strong>生成履歴</strong>：生成したスカウトメッセージの履歴はシステムに保存されます。</li>
                 <li><strong>監査ログ</strong>：管理者は監査のため、すべての操作履歴を確認できます。</li>
+                <li><strong>履歴削除</strong>：不要な履歴は各自で削除できますが、監査ログには記録が残ります。</li>
                 <li><strong>アカウント削除</strong>：ユーザーアカウントが削除されても、過去の生成履歴はシステムに残ります。</li>
               </ul>
             </>
@@ -240,7 +256,11 @@ const HowToPage = () => {
 
         <div className="howto-sections">
           {sections.map((section) => (
-            <div key={section.id} className="howto-section">
+            <div 
+              key={section.id} 
+              className="howto-section"
+              ref={el => sectionRefs.current[section.id] = el}
+            >
               <button
                 className={`section-header ${openSection === section.id ? 'active' : ''}`}
                 onClick={() => toggleSection(section.id)}
