@@ -225,6 +225,9 @@ export default function RecruitmentToolForm() {
         <Link to="/output-rules" className="btn-nav" style={{ marginLeft: '10px' }}>
           出力ルールを管理
         </Link>
+        <Link to="/howto" className="btn-nav" style={{ marginLeft: '10px' }}>
+          利用方法・注意事項
+        </Link>
       </div>
 
       {/* 保存済みテンプレート選択 */}
