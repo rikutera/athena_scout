@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
 import TermsPage from './pages/TermsPage'
+import HowToPage from './pages/HowToPage';
 import AdminUsageDashboard from './pages/AdminUsageDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -83,6 +84,12 @@ function App() {
                 </Link>
               </li>
             )}
+            {/* 👇 新規追加：使い方リンク（全ユーザー対象） */}
+            <li className="nav-item">
+              <Link to="/howto" className="nav-link">
+                使い方
+              </Link>
+            </li>
             <li className="nav-item nav-user">
               <Link to="/my-page" className="nav-link nav-username">
                 {user?.username}
@@ -102,6 +109,7 @@ function App() {
           <Route path="/job-types" element={<AdminOrManagerRoute element={<JobTypesPage />} />} />
           <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
+          <Route path="/howto" element={<ProtectedRoute element={<HowToPage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/users" element={<AdminRoute element={<UserManagementPage />} />} />
           <Route path="/admin/usage" element={<AdminRoute element={<AdminUsageDashboard />} />} />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
