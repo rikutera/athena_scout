@@ -218,12 +218,16 @@ export default function RecruitmentToolForm() {
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <Link to="/job-types" className="btn-nav">
-          職業適性を管理
-        </Link>
-        <Link to="/output-rules" className="btn-nav" style={{ marginLeft: '10px' }}>
-          出力ルールを管理
-        </Link>
+        {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
+          <>
+            <Link to="/job-types" className="btn-nav">
+              職業適性を管理
+            </Link>
+            <Link to="/output-rules" className="btn-nav" style={{ marginLeft: '10px' }}>
+              出力ルールを管理
+            </Link>
+          </>
+        )}
         <Link to="/howto" className="btn-nav" style={{ marginLeft: '10px' }}>
           利用方法・注意事項
         </Link>
@@ -314,7 +318,7 @@ export default function RecruitmentToolForm() {
         </div>
 
         {/* 管理者 or 責任者のみ表示 */}
-        { (user?.user_role === 'admin' || user?.user_role === 'manager') && (
+        {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={handleSaveTemplate} className="btn-save-template" style={{ flex: 1 }}>
               {editingTemplateId ? 'テンプレートを更新' : 'テンプレートを保存'}
