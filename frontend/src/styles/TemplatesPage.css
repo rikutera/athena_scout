@@ -195,7 +195,7 @@
     border-right: none;
   }
   
-  .grid-cell {
+  .templates-grid .grid-cell {
     background-color: white;
     padding: 14px 16px;
     font-size: 14px;
@@ -207,7 +207,7 @@
     min-height: 60px;
   }
   
-  .grid-cell:nth-child(4n) {
+  templates-grid .grid-cell:nth-child(4n) {
     border-right: none;
   }
   
