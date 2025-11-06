@@ -409,6 +409,150 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユ�
   }
 });
 
+// ========== ユーザー・テンプレート関連付け API（管理者のみ）==========
+
+// ユーザーに割り当てられたテンプレート一覧取得
+app.get('/api/users/:id/templates', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    const result = await pool.query(`
+      SELECT t.id, t.template_name, t.job_type, t.industry, t.created_at, t.updated_at
+      FROM templates t
+      INNER JOIN user_templates ut ON t.id = ut.template_id
+      WHERE ut.user_id = $1
+      ORDER BY t.created_at DESC
+    `, [userId]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching user templates:', error);
+    res.status(500).json({ error: 'ユーザーのテンプレート取得に失敗しました' });
+  }
+});
+
+// ユーザーに複数のテンプレートを割り当て
+app.post('/api/users/:id/templates', authenticateToken, requireAdmin, logActivity('テンプレート割り当て'), async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { template_ids } = req.body; // [1, 2, 3] のような配列
+
+    if (!Array.isArray(template_ids) || template_ids.length === 0) {
+      return res.status(400).json({ error: 'テンプレートIDの配列が必須です' });
+    }
+
+    // 既存の割り当てを削除
+    await pool.query('DELETE FROM user_templates WHERE user_id = $1', [userId]);
+
+    // 新しい割り当てを追加
+    for (const templateId of template_ids) {
+      await pool.query(
+        'INSERT INTO user_templates (user_id, template_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [userId, templateId]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error assigning templates:', error);
+    res.status(500).json({ error: 'テンプレートの割り当てに失敗しました' });
+  }
+});
+
+// ユーザーのテンプレール割り当てを解除
+app.delete('/api/users/:id/templates/:templateId', authenticateToken, requireAdmin, logActivity('テンプレート割り当て解除'), async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const templateId = req.params.templateId;
+
+    const result = await pool.query(
+      'DELETE FROM user_templates WHERE user_id = $1 AND template_id = $2 RETURNING id',
+      [userId, templateId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '割り当てが見つかりません' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing template assignment:', error);
+    res.status(500).json({ error: 'テンプレートの割り当て解除に失敗しました' });
+  }
+});
+
+// ========== ユーザー・出力ルール関連付け API（管理者のみ）==========
+
+// ユーザーに割り当てられた出力ルール一覧取得
+app.get('/api/users/:id/output-rules', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    const result = await pool.query(`
+      SELECT or.id, or.rule_name, or.rule_text, or.description, or.is_active, or.created_at, or.updated_at
+      FROM output_rules or
+      INNER JOIN user_output_rules uor ON or.id = uor.output_rule_id
+      WHERE uor.user_id = $1
+      ORDER BY or.created_at DESC
+    `, [userId]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching user output rules:', error);
+    res.status(500).json({ error: 'ユーザーの出力ルール取得に失敗しました' });
+  }
+});
+
+// ユーザーに複数の出力ルールを割り当て
+app.post('/api/users/:id/output-rules', authenticateToken, requireAdmin, logActivity('出力ルール割り当て'), async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { output_rule_ids } = req.body; // [1, 2, 3] のような配列
+
+    if (!Array.isArray(output_rule_ids) || output_rule_ids.length === 0) {
+      return res.status(400).json({ error: '出力ルールIDの配列が必須です' });
+    }
+
+    // 既存の割り当てを削除
+    await pool.query('DELETE FROM user_output_rules WHERE user_id = $1', [userId]);
+
+    // 新しい割り当てを追加
+    for (const outputRuleId of output_rule_ids) {
+      await pool.query(
+        'INSERT INTO user_output_rules (user_id, output_rule_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [userId, outputRuleId]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error assigning output rules:', error);
+    res.status(500).json({ error: '出力ルールの割り当てに失敗しました' });
+  }
+});
+
+// ユーザーの出力ルール割り当てを解除
+app.delete('/api/users/:id/output-rules/:outputRuleId', authenticateToken, requireAdmin, logActivity('出力ルール割り当て解除'), async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const outputRuleId = req.params.outputRuleId;
+
+    const result = await pool.query(
+      'DELETE FROM user_output_rules WHERE user_id = $1 AND output_rule_id = $2 RETURNING id',
+      [userId, outputRuleId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '割り当てが見つかりません' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing output rule assignment:', error);
+    res.status(500).json({ error: '出力ルールの割り当て解除に失敗しました' });
+  }
+});
+
 // ========== ログイン履歴・利用履歴 API（管理者のみ）==========
 
 // ログイン履歴取得
@@ -461,12 +605,37 @@ app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req,
 
 // ========== テンプレート管理 ==========
 
-// テンプレート一覧取得
+// テンプレート一覧取得（修正版：管理者は全て、その他はユーザーに割り当てられたもののみ）
 app.get('/api/templates', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM templates ORDER BY created_at DESC'
+    // ユーザーの役割を取得
+    const userResult = await pool.query(
+      'SELECT user_role FROM users WHERE id = $1',
+      [req.user.userId]
     );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    const isAdmin = userResult.rows[0].user_role === 'admin';
+
+    let result;
+    if (isAdmin) {
+      // 管理者：全テンプレート表示
+      result = await pool.query(
+        'SELECT * FROM templates ORDER BY created_at DESC'
+      );
+    } else {
+      // 一般ユーザー：割り当てられたテンプレートのみ表示
+      result = await pool.query(`
+        SELECT t.* FROM templates t
+        INNER JOIN user_templates ut ON t.id = ut.template_id
+        WHERE ut.user_id = $1
+        ORDER BY t.created_at DESC
+      `, [req.user.userId]);
+    }
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching templates:', error);
@@ -636,12 +805,38 @@ app.delete('/api/job-types/:id', authenticateToken, requireAdminOrManager, logAc
 
 // ========== 出力ルール管理 ==========
 
-// 出力ルール一覧取得
+// 出力ルール一覧取得（修正版：管理者は全て、その他はユーザーに割り当てられたもののみ）
 app.get('/api/output-rules', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
+    // ユーザーの役割を取得
+    const userResult = await pool.query(
+      'SELECT user_role FROM users WHERE id = $1',
+      [req.user.userId]
     );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+    }
+
+    const isAdmin = userResult.rows[0].user_role === 'admin';
+
+    let result;
+    if (isAdmin) {
+      // 管理者：全出力ルール表示
+      result = await pool.query(
+        'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
+      );
+    } else {
+      // 一般ユーザー：割り当てられた出力ルールのみ表示
+      result = await pool.query(`
+        SELECT or.id, or.rule_name, or.rule_text, or.description, or.is_active
+        FROM output_rules or
+        INNER JOIN user_output_rules uor ON or.id = uor.output_rule_id
+        WHERE uor.user_id = $1
+        ORDER BY or.created_at ASC
+      `, [req.user.userId]);
+    }
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching output rules:', error);
@@ -928,6 +1123,30 @@ app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res)
   }
 });
 
+// 管理者用：特定ユーザーの生成履歴取得
+app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { user_id, limit = 100 } = req.query;
+
+    let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
+    let params = [];
+
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
+    params.push(limit);
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching generation history:', error);
+    res.status(500).json({ error: '生成履歴の取得に失敗しました' });
+  }
+});
+
 // エラーハンドリング
 app.use((err, req, res, next) => {
   console.error(err);
@@ -937,111 +1156,9 @@ app.use((err, req, res, next) => {
 // データベース初期化関数
 async function initializeDatabase() {
   try {
-    // usersテーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_status VARCHAR(50) DEFAULT 'active',
-        user_role VARCHAR(50) DEFAULT 'user'
-      )
-    `);
-
-    // ログイン履歴テーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS login_logs (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        username VARCHAR(255),
-        login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        ip_address VARCHAR(45),
-        user_agent TEXT
-      )
-    `);
-
-    // 利用履歴テーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS activity_logs (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        username VARCHAR(255),
-        action VARCHAR(100),
-        details TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // 生成履歴テーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS generation_history (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        username VARCHAR(255),
-        template_name VARCHAR(255),
-        job_type VARCHAR(100),
-        industry VARCHAR(100),
-        student_profile TEXT,
-        generated_comment TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // 職業適性テーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS job_types (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        definition TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT now(),
-        updated_at TIMESTAMP DEFAULT now()
-      )
-    `);
-
-    // 出力ルールテーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS output_rules (
-        id SERIAL PRIMARY KEY,
-        rule_name VARCHAR(255) NOT NULL,
-        rule_text TEXT NOT NULL,
-        description TEXT,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT now(),
-        updated_at TIMESTAMP DEFAULT now()
-      )
-    `);
-
-    // テンプレートテーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS templates (
-        id SERIAL PRIMARY KEY,
-        template_name VARCHAR(255) NOT NULL,
-        job_type VARCHAR(255),
-        industry VARCHAR(255),
-        company_requirement TEXT,
-        offer_template TEXT,
-        output_rule_id INTEGER REFERENCES output_rules(id),
-        created_at TIMESTAMP DEFAULT now(),
-        updated_at TIMESTAMP DEFAULT now()
-      )
-    `);
-
-    // API使用量ログテーブル作成
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS api_usage_logs (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        input_tokens INTEGER NOT NULL,
-        output_tokens INTEGER NOT NULL,
-        total_tokens INTEGER NOT NULL,
-        total_cost NUMERIC NOT NULL,
-        created_at TIMESTAMP DEFAULT now()
-      )
-    `);
-
-    console.log('Database tables created (users, login_logs, activity_logs, generation_history, job_types, output_rules, templates, api_usage_logs)');
+    console.log('Initializing database...');
+    // schema.sql から テーブル作成を削除しました。
+    // schema.sql を手動で実行してください：psql -U user -d database -f backend/schema.sql
 
     // 管理者ユーザーを存在しない場合のみ作成（シーケンスを無駄に進めない）
     const adminExists = await pool.query('SELECT 1 FROM users WHERE username = $1 LIMIT 1', ['admin']);
@@ -1074,27 +1191,4 @@ initializeDatabase().then(() => {
   app.listen(PORT, HOST, () => {
     console.log(`Server running on ${HOST}:${PORT}`);
   });
-});
-// 管理者用：特定ユーザーの生成履歴取得
-app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { user_id, limit = 100 } = req.query;
-
-    let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
-    let params = [];
-
-    if (user_id) {
-      query += ' WHERE user_id = $1';
-      params.push(user_id);
-    }
-
-    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
-    params.push(limit);
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching generation history:', error);
-    res.status(500).json({ error: '生成履歴の取得に失敗しました' });
-  }
 });
