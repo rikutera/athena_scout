@@ -1,9 +1,9 @@
+/* TemplatesPage.css */
+
 .templates-page {
+    padding: 20px;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 30px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, sans-serif;
   }
   
   .page-header {
@@ -11,274 +11,239 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #007bff;
   }
   
   .page-header h1 {
-    margin: 0;
-    color: #333;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a202c;
   }
   
   .btn-back {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #6c757d;
+    padding: 10px 20px;
+    background-color: #6b7280;
     color: white;
     text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background-color 0.2s;
   }
   
   .btn-back:hover {
-    background-color: #5a6268;
+    background-color: #4b5563;
   }
   
   .btn-add {
-    margin-bottom: 20px;
-    padding: 12px 20px;
-    background-color: #28a745;
+    padding: 12px 24px;
+    background-color: #3b82f6;
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 1em;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
   }
   
   .btn-add:hover {
-    background-color: #218838;
+    background-color: #2563eb;
   }
   
+  /* フォームカード */
   .form-card {
-    background-color: #f9f9f9;
-    padding: 20px;
+    background: white;
+    padding: 30px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
   }
   
   .form-card h2 {
-    margin-top: 0;
+    font-size: 22px;
+    font-weight: 600;
     margin-bottom: 20px;
-    color: #333;
+    color: #1a202c;
   }
   
   .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
   }
   
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 20px;
   }
   
   .form-group label {
     display: block;
-    font-weight: 600;
     margin-bottom: 8px;
-    color: #333;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
   }
   
   .form-group input,
-  .form-group textarea,
-  .form-group select {
+  .form-group select,
+  .form-group textarea {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    font-family: inherit;
-    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
   }
   
   .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
+  .form-group select:focus,
+  .form-group textarea:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    font-family: inherit;
   }
   
   .form-actions {
     display: flex;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  
+  .btn-save,
+  .btn-cancel {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
   
   .btn-save {
-    flex: 1;
-    padding: 12px 20px;
-    background-color: #007bff;
+    background-color: #10b981;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
   }
   
   .btn-save:hover {
-    background-color: #0056b3;
+    background-color: #059669;
   }
   
   .btn-cancel {
-    flex: 1;
-    padding: 12px 20px;
-    background-color: #dc3545;
+    background-color: #6b7280;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
   }
   
   .btn-cancel:hover {
-    background-color: #c82333;
+    background-color: #4b5563;
   }
   
+  /* テンプレートリスト */
   .templates-list {
-    background-color: #f9f9f9;
-    padding: 20px;
+    background: white;
+    padding: 30px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .templates-list h2 {
-    margin-top: 0;
-    color: #333;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1a202c;
   }
   
+  /* グリッドレイアウト */
   .templates-grid {
     display: grid;
-    grid-template-columns: 200px 120px 150px 200px;
-    gap: 0;
-    margin-top: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    grid-template-columns: 2fr 1fr 1fr 2fr;
+    gap: 1px;
+    background-color: #e5e7eb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
     overflow: hidden;
   }
   
   .grid-header {
-    background-color: #007bff;
-    color: white;
-    padding: 12px;
+    background-color: #f3f4f6;
+    padding: 12px 16px;
     font-weight: 600;
-    text-align: left;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .grid-header:nth-child(4),
-  .grid-header:nth-child(8n+4) {
-    border-right: none;
+    font-size: 14px;
+    color: #374151;
   }
   
   .grid-cell {
     background-color: white;
-    padding: 12px;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #1f2937;
     display: flex;
     align-items: center;
-    min-height: 50px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  
-  .templates-grid .grid-cell:nth-child(4n) {
-    border-right: none;
-  }
-  
-  .grid-cell:first-child {
-    font-weight: 600;
-    color: #333;
   }
   
   .grid-actions {
     display: flex;
     gap: 8px;
-    justify-content: center;
-    border-right: none;
+    flex-wrap: wrap;
   }
   
-  .templates-page .btn-view-users {
-    flex: 1;
-    margin-top: 0;
-    padding: 8px 12px;
-    background-color: #17a2b8;
+  /* ボタンスタイル */
+  .btn-view-users,
+  .btn-duplicate,
+  .btn-edit,
+  .btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  
+  .btn-view-users {
+    background-color: #8b5cf6;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
   }
   
-  .templates-page .btn-view-users:hover {
-    background-color: #138496;
+  .btn-view-users:hover {
+    background-color: #7c3aed;
   }
   
-  .templates-page .btn-duplicate {
-    flex: 1;
-    margin-top: 0;
-    padding: 8px 12px;
-    background-color: #6f42c1;
+  .btn-duplicate {
+    background-color: #06b6d4;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
   }
   
-  .templates-page .btn-duplicate:hover {
-    background-color: #5a32a3;
+  .btn-duplicate:hover {
+    background-color: #0891b2;
   }
   
-  .templates-page .btn-edit {
-    flex: 1;
-    margin-top: 0;
-    padding: 8px 12px;
-    background-color: #ffc107;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-  }
-  
-  .templates-page .btn-edit:hover {
-    background-color: #e0a800;
-  }
-  
-  .templates-page .btn-delete {
-    flex: 1;
-    padding: 8px 12px;
-    background-color: #dc3545;
+  .btn-edit {
+    background-color: #f59e0b;
     color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
   }
   
-  .templates-page .btn-delete:hover {
-    background-color: #c82333;
+  .btn-edit:hover {
+    background-color: #d97706;
   }
   
-  /* ========== モーダルスタイル ========== */
+  .btn-delete {
+    background-color: #ef4444;
+    color: white;
+  }
   
+  .btn-delete:hover {
+    background-color: #dc2626;
+  }
+  
+  /* モーダル */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -293,186 +258,162 @@
   }
   
   .modal-content {
-    background-color: white;
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
     width: 90%;
+    max-width: 600px;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
   
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
   }
   
   .modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a202c;
     margin: 0;
-    color: #333;
-    font-size: 1.5em;
   }
   
   .modal-close {
     background: none;
     border: none;
-    font-size: 1.5em;
+    font-size: 24px;
+    color: #6b7280;
     cursor: pointer;
-    color: #666;
     padding: 0;
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.3s ease;
+    border-radius: 4px;
+    transition: background-color 0.2s;
   }
   
   .modal-close:hover {
-    color: #333;
+    background-color: #f3f4f6;
+    color: #1f2937;
   }
   
   .modal-body {
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto;
     flex: 1;
   }
   
   .template-name {
-    margin: 0 0 20px 0;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border-left: 4px solid #007bff;
-    font-size: 0.95em;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #4b5563;
   }
   
-  .template-name strong {
-    color: #333;
-  }
-  
-  .loading {
+  .loading,
+  .error,
+  .no-users {
     text-align: center;
-    color: #666;
     padding: 20px;
+    color: #6b7280;
+    font-size: 14px;
   }
   
   .error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 12px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  
-  .no-users {
-    text-align: center;
-    color: #999;
-    padding: 20px;
-    font-style: italic;
+    color: #ef4444;
   }
   
   .users-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
   }
   
   .users-table thead {
-    background-color: #f9f9f9;
+    background-color: #f9fafb;
   }
   
   .users-table th {
-    padding: 12px;
     text-align: left;
+    padding: 12px;
     font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #ddd;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
   }
   
   .users-table td {
     padding: 12px;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .users-table tbody tr:hover {
-    background-color: #f9f9f9;
+    font-size: 14px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
   }
   
   .users-table tbody tr:last-child td {
     border-bottom: none;
   }
   
+  .users-table tbody tr:hover {
+    background-color: #f9fafb;
+  }
+  
   .role-badge {
     display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
   }
   
-  .role-admin {
-    background-color: #dc3545;
-    color: white;
+  .role-badge.role-admin {
+    background-color: #fef3c7;
+    color: #92400e;
   }
   
-  .role-manager {
-    background-color: #ffc107;
-    color: #333;
+  .role-badge.role-manager {
+    background-color: #dbeafe;
+    color: #1e40af;
   }
   
-  .role-user {
-    background-color: #28a745;
-    color: white;
+  .role-badge.role-user {
+    background-color: #e0e7ff;
+    color: #3730a3;
   }
   
   .modal-footer {
-    padding: 20px;
-    border-top: 1px solid #ddd;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
   }
   
   .btn-close {
     padding: 10px 20px;
-    background-color: #6c757d;
+    background-color: #6b7280;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s;
   }
   
   .btn-close:hover {
-    background-color: #5a6268;
+    background-color: #4b5563;
   }
   
-  /* レスポンシブ対応 */
-  @media (max-width: 1024px) {
-    .templates-grid {
-      grid-template-columns: 150px 100px 120px 150px;
-    }
-  
-    .grid-cell {
-      padding: 10px;
-      font-size: 0.9em;
-    }
-  }
-  
+  /* レスポンシブデザイン */
   @media (max-width: 768px) {
-    .templates-page {
-      padding: 15px;
-    }
-  
     .page-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 15px;
+      gap: 16px;
     }
   
     .form-row {
@@ -483,23 +424,16 @@
       grid-template-columns: 1fr;
     }
   
-    .grid-cell {
-      border-right: none;
-      border-bottom: 1px solid #ddd;
-      padding: 8px;
-    }
-  
-    .grid-header {
-      border-right: none;
-      border-bottom: 1px solid #ddd;
+    .grid-header:nth-child(3),
+    .grid-cell:nth-child(4n+3) {
+      display: none;
     }
   
     .grid-actions {
-      margin-top: 8px;
+      flex-direction: column;
     }
   
     .modal-content {
       width: 95%;
-      max-height: 90vh;
     }
   }
