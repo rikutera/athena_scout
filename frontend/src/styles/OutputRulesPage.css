@@ -246,7 +246,7 @@
     margin-top: 12px;
   }
   
-  .btn-edit {
+  .output-rules-page .btn-edit {
     flex: 1;
     padding: 8px 12px;
     background-color: #ffc107;
@@ -259,7 +259,7 @@
     transition: background-color 0.3s ease;
   }
   
-  .btn-edit:hover {
+  .output-rules-page .btn-edit:hover {
     background-color: #e0a800;
   }
   
