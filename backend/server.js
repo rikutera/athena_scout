@@ -829,11 +829,11 @@ app.get('/api/output-rules', authenticateToken, async (req, res) => {
     } else {
       // 一般ユーザー：割り当てられた出力ルールのみ表示
       result = await pool.query(`
-        SELECT or.id, or.rule_name, or.rule_text, or.description, or.is_active
+        SELECT orules.id, orules.rule_name, orules.rule_text, orules.description, orules.is_active
         FROM output_rules orules
-        INNER JOIN user_output_rules uor ON or.id = uor.output_rule_id
+        INNER JOIN user_output_rules uor ON orules.id = uor.output_rule_id
         WHERE uor.user_id = $1
-        ORDER BY or.created_at ASC
+        ORDER BY orules.created_at ASC
       `, [req.user.userId]);
     }
 
