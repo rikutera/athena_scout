@@ -413,7 +413,7 @@ export default function TemplatesPage() {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>割り当てユーザー管理2</h2>
+              <h2>割り当てユーザー管理</h2>
               <button className="modal-close" onClick={handleCloseModal}>✕</button>
             </div>
 
