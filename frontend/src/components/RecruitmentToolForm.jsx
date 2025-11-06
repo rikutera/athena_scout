@@ -316,16 +316,19 @@ export default function RecruitmentToolForm() {
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={handleSaveTemplate} className="btn-save-template" style={{ flex: 1 }}>
-            {editingTemplateId ? 'テンプレートを更新' : 'テンプレートを保存'}
-          </button>
-          {editingTemplateId && (
-            <button onClick={handleCancelEdit} className="btn-cancel" style={{ flex: 1 }}>
-              編集をキャンセル
+        {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={handleSaveTemplate} className="btn-save-template" style={{ flex: 1 }}>
+              {editingTemplateId ? 'テンプレートを更新' : 'テンプレートを保存'}
             </button>
-          )}
-        </div>
+            {editingTemplateId && (
+              <button onClick={handleCancelEdit} className="btn-cancel" style={{ flex: 1 }}>
+                編集をキャンセル
+              </button>
+            )}
+          </div>
+        )}
+
       </section>
 
       {/* 学生プロフィール入力 */}
