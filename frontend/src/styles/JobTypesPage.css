@@ -198,6 +198,7 @@
   }
   
   .job-types-page .btn-edit {
+    flex: 1;
     margin-top: 0;
     padding: 8px 12px;
     background-color: #ffc107;
