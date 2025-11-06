@@ -294,7 +294,7 @@ const requireAdminOrManager = async (req, res, next) => {
 // ========== ユーザー管理 API（管理者のみ）==========
 
 // 全ユーザー一覧取得
-app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/users', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT DISTINCT ON (u.id)
