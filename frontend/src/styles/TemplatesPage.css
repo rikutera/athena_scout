@@ -163,7 +163,7 @@
     overflow: hidden;
   }
   
-  .grid-header {
+  .templates-grid .grid-header {
     background-color: #007bff;
     color: white;
     padding: 12px;
@@ -173,11 +173,11 @@
     border-bottom: 1px solid #ddd;
   }
   
-  .grid-header:last-child {
+  .templates-grid .grid-header:last-child {
     border-right: none;
   }
   
-  .grid-cell {
+  .templates-grid .grid-cell {
     background-color: white;
     padding: 12px;
     border-right: 1px solid #ddd;
