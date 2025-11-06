@@ -4,6 +4,7 @@ import { useUser } from './contexts/UserContext'
 import { useSessionTimeout } from './hooks/useSessionTimeout'
 import RecruitmentToolForm from './components/RecruitmentToolForm'
 import JobTypesPage from './pages/JobTypesPage'
+import TemplatesPage from './pages/TemplatesPage'
 import OutputRulesPage from './pages/OutputRulesPage'
 import LoginPage from './pages/LoginPage'
 import MyPages from './pages/MyPages'
@@ -75,6 +76,11 @@ function App() {
                     出力ルール管理
                   </Link>
                 </li>
+                <li className="nav-item">
+                  <Link to="/templates" className="nav-link">
+                    テンプレート管理
+                  </Link>
+                </li>
               </>
             )}
             {user?.user_role === 'admin' && (
@@ -107,6 +113,7 @@ function App() {
           <Route path="/" element={<RecruitmentToolForm />} />
           <Route path="/terms" element={<ProtectedRoute element={<TermsPage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/job-types" element={<AdminOrManagerRoute element={<JobTypesPage />} />} />
+          <Route path="/templates" element={<AdminOrManagerRoute element={<TemplatesPage />} />} />
           <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
           <Route path="/howto" element={<ProtectedRoute element={<HowToPage />} isAuthenticated={isAuthenticated} />} />
