@@ -573,8 +573,8 @@
 }
 
 .btn-assign-small {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  font-size: 14px;
   background-color: #4CAF50;
   color: white;
   border: none;
