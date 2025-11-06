@@ -437,7 +437,7 @@ app.post('/api/users/:id/templates', authenticateToken, requireAdmin, logActivit
     const userId = req.params.id;
     const { template_ids } = req.body; // [1, 2, 3] のような配列
 
-    if (!Array.isArray(template_ids) || template_ids.length === 0) {
+    if (!Array.isArray(template_ids)) {
       return res.status(400).json({ error: 'テンプレートIDの配列が必須です' });
     }
 
