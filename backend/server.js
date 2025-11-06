@@ -296,9 +296,19 @@ const requireAdminOrManager = async (req, res, next) => {
 // 全ユーザー一覧取得
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, username, user_status, user_role, created_at, updated_at FROM users ORDER BY id ASC'
-    );
+    const result = await pool.query(`
+      SELECT DISTINCT ON (u.id)
+        u.id, 
+        u.username, 
+        u.user_status, 
+        u.user_role, 
+        u.created_at, 
+        u.updated_at,
+        ll.login_at AS last_login_at
+      FROM users u
+      LEFT JOIN login_logs ll ON u.id = ll.user_id
+      ORDER BY u.id, ll.login_at DESC NULLS LAST
+    `);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -817,7 +827,7 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
     const inputTokens = usage.input_tokens;
     const outputTokens = usage.output_tokens;
     const totalTokens = inputTokens + outputTokens;
-    
+
     // コスト計算（Claude Sonnet 4の料金）
     const inputCost = (inputTokens / 1000000) * 3.00;
     const outputCost = (outputTokens / 1000000) * 15.00;

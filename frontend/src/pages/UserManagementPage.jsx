@@ -240,7 +240,7 @@ export default function UserManagementPage() {
                   <th>ユーザー名</th>
                   <th>ステータス</th>
                   <th>ロール</th>
-                  <th>登録日時</th>
+                  <th>最終ログイン</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -261,7 +261,11 @@ export default function UserManagementPage() {
                         {user.user_role === 'user' && 'ユーザー'}
                       </span>
                     </td>
-                    <td>{new Date(user.created_at).toLocaleString('ja-JP')}</td>
+                    <td>
+                      {user.last_login_at
+                        ? new Date(user.last_login_at).toLocaleString('ja-JP')
+                        : 'ログインなし'}
+                    </td>
                     <td>
                       <button
                         onClick={() => handleShowLogs(user)}
