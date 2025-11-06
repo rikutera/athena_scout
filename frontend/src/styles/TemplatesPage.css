@@ -189,11 +189,11 @@
     overflow-wrap: break-word;
   }
   
-  .grid-cell:nth-child(4n) {
+  .templates-grid .grid-cell:nth-child(4n) {
     border-right: none;
   }
   
-  .grid-cell:first-child {
+  .templates-grid .grid-cell:first-child {
     font-weight: 600;
     color: #333;
   }
