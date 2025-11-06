@@ -61,10 +61,12 @@ export default function RecruitmentToolForm() {
   const fetchOutputRules = async () => {
     try {
       const response = await apiClient.get('/api/output-rules');
-      setOutputRules(response.data);
-      // デフォルトルールを選択（最初のルール）
-      if (response.data.length > 0) {
-        setOutputRuleId(response.data[0].id);
+      // 有効なルール（is_active === true）のみをフィルタリング
+      const activeRules = response.data.filter(rule => rule.is_active === true);
+      setOutputRules(activeRules);
+      // デフォルトルールを選択（最初の有効なルール）
+      if (activeRules.length > 0) {
+        setOutputRuleId(activeRules[0].id);
       }
     } catch (error) {
       console.error('Error fetching output rules:', error);
