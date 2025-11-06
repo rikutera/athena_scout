@@ -8,6 +8,7 @@ export default function TemplatesPage() {
   const [jobTypes, setJobTypes] = useState([]);
   const [outputRules, setOutputRules] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     template_name: '',
     job_type: '',
@@ -16,7 +17,13 @@ export default function TemplatesPage() {
     offer_template: '',
     output_rule_id: '',
   });
-  const [isAdding, setIsAdding] = useState(false);
+
+  // モーダル状態
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [modalUsers, setModalUsers] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState(null);
 
   useEffect(() => {
     document.title = 'テンプレート管理 - Athena Scout';
@@ -135,6 +142,43 @@ export default function TemplatesPage() {
     });
   };
 
+  const handleViewUsers = async (template) => {
+    setSelectedTemplate(template);
+    setIsModalOpen(true);
+    setModalLoading(true);
+    setModalError(null);
+    
+    try {
+      const response = await apiClient.get(`/api/templates/${template.id}/users`);
+      setModalUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching assigned users:', error);
+      setModalError('割り当てユーザーの取得に失敗しました');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTemplate(null);
+    setModalUsers([]);
+    setModalError(null);
+  };
+
+  const getRoleBadgeText = (role) => {
+    switch (role) {
+      case 'admin':
+        return '管理者';
+      case 'manager':
+        return '責任者';
+      case 'user':
+        return '一般ユーザー';
+      default:
+        return role;
+    }
+  };
+
   return (
     <div className="templates-page">
       <div className="page-header">
@@ -248,6 +292,12 @@ export default function TemplatesPage() {
                 <div className="grid-cell">{template.industry || '—'}</div>
                 <div className="grid-cell grid-actions">
                   <button
+                    onClick={() => handleViewUsers(template)}
+                    className="btn-view-users"
+                  >
+                    割当ユーザー
+                  </button>
+                  <button
                     onClick={() => handleEditClick(template)}
                     className="btn-edit"
                   >
@@ -265,6 +315,61 @@ export default function TemplatesPage() {
           </div>
         )}
       </div>
+
+      {/* モーダル */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>割り当てユーザー</h2>
+              <button className="modal-close" onClick={handleCloseModal}>✕</button>
+            </div>
+
+            <div className="modal-body">
+              <p className="template-name">
+                <strong>テンプレート：</strong> {selectedTemplate?.template_name}
+              </p>
+
+              {modalLoading && <p className="loading">読み込み中...</p>}
+
+              {modalError && <p className="error">{modalError}</p>}
+
+              {!modalLoading && modalUsers.length === 0 && (
+                <p className="no-users">割り当てられたユーザーがいません</p>
+              )}
+
+              {!modalLoading && modalUsers.length > 0 && (
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>ユーザー名</th>
+                      <th>ロール</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {modalUsers.map((user) => (
+                      <tr key={user.id}>
+                        <td>{user.username}</td>
+                        <td>
+                          <span className={`role-badge role-${user.user_role}`}>
+                            {getRoleBadgeText(user.user_role)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-close" onClick={handleCloseModal}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

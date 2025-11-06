@@ -735,6 +735,26 @@ app.delete('/api/templates/:id', authenticateToken, logActivity('テンプレー
   }
 });
 
+// テンプレートに割り当てられたユーザー一覧取得
+app.get('/api/templates/:id/users', authenticateToken, async (req, res) => {
+  try {
+    const templateId = req.params.id;
+    
+    const result = await pool.query(`
+      SELECT u.id, u.username, u.user_role
+      FROM users u
+      INNER JOIN user_templates ut ON u.id = ut.user_id
+      WHERE ut.template_id = $1
+      ORDER BY u.id ASC
+    `, [templateId]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching template users:', error);
+    res.status(500).json({ error: 'テンプレートに割り当てられたユーザーの取得に失敗しました' });
+  }
+});
+
 // ========== 職業適性管理 ==========
 
 // 職業適性一覧取得

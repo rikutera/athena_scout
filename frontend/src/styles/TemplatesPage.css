@@ -163,21 +163,22 @@
     overflow: hidden;
   }
   
-  .templates-grid .grid-header {
+  .grid-header {
     background-color: #007bff;
     color: white;
     padding: 12px;
     font-weight: 600;
     text-align: left;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   }
   
-  .templates-grid .grid-header:last-child {
+  .grid-header:nth-child(4),
+  .grid-header:nth-child(8n+4) {
     border-right: none;
   }
   
-  .templates-grid .grid-cell {
+  .grid-cell {
     background-color: white;
     padding: 12px;
     border-right: 1px solid #ddd;
@@ -193,7 +194,7 @@
     border-right: none;
   }
   
-  .templates-grid .grid-cell:first-child {
+  .grid-cell:first-child {
     font-weight: 600;
     color: #333;
   }
@@ -203,6 +204,24 @@
     gap: 8px;
     justify-content: center;
     border-right: none;
+  }
+  
+  .templates-page .btn-view-users {
+    flex: 1;
+    margin-top: 0;
+    padding: 8px 12px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .templates-page .btn-view-users:hover {
+    background-color: #138496;
   }
   
   .templates-page .btn-edit {
@@ -223,8 +242,9 @@
     background-color: #e0a800;
   }
   
-  .btn-delete {
-    padding: 6px 12px;
+  .templates-page .btn-delete {
+    flex: 1;
+    padding: 8px 12px;
     background-color: #dc3545;
     color: white;
     border: none;
@@ -235,8 +255,183 @@
     transition: background-color 0.3s ease;
   }
   
-  .btn-delete:hover {
+  .templates-page .btn-delete:hover {
     background-color: #c82333;
+  }
+  
+  /* ========== モーダルスタイル ========== */
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+  }
+  
+  .modal-close:hover {
+    color: #333;
+  }
+  
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .template-name {
+    margin: 0 0 20px 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-left: 4px solid #007bff;
+    font-size: 0.95em;
+  }
+  
+  .template-name strong {
+    color: #333;
+  }
+  
+  .loading {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+  }
+  
+  .error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .no-users {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+  }
+  
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .users-table thead {
+    background-color: #f9f9f9;
+  }
+  
+  .users-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .users-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .users-table tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .users-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  
+  .role-admin {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .role-manager {
+    background-color: #ffc107;
+    color: #333;
+  }
+  
+  .role-user {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .btn-close {
+    padding: 10px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-close:hover {
+    background-color: #5a6268;
   }
   
   /* レスポンシブ対応 */
@@ -283,5 +478,10 @@
   
     .grid-actions {
       margin-top: 8px;
+    }
+  
+    .modal-content {
+      width: 95%;
+      max-height: 90vh;
     }
   }
