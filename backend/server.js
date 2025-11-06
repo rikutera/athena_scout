@@ -850,6 +850,64 @@ app.get('/api/templates/:id/users', authenticateToken, async (req, res) => {
   }
 });
 
+// テンプレートに複数のユーザーを割り当て（管理者または責任者）
+app.post('/api/templates/:templateId/assign-users', authenticateToken, requireAdminOrManager, logActivity('テンプレートユーザー割り当て'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const templateId = req.params.templateId;
+    const { user_ids } = req.body || {};
+
+    if (!Array.isArray(user_ids)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'ユーザーIDの配列が必須です' });
+    }
+
+    // テンプレートが存在するか確認
+    const templateCheck = await client.query(
+      'SELECT id FROM templates WHERE id = $1',
+      [templateId]
+    );
+
+    if (templateCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'テンプレートが見つかりません' });
+    }
+
+    // 既存の割り当てを削除
+    await client.query(
+      'DELETE FROM user_templates WHERE template_id = $1',
+      [templateId]
+    );
+
+    // 新しい割り当てを追加
+    if (user_ids.length > 0) {
+      for (const userId of user_ids) {
+        await client.query(
+          'INSERT INTO user_templates (user_id, template_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [userId, templateId]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.json({ 
+      success: true,
+      assigned_count: user_ids.length
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error assigning users to template:', error);
+    res.status(500).json({ error: 'ユーザー割り当てに失敗しました' });
+  } finally {
+    client.release();
+  }
+});
+
+
 // ========== 職業適性管理 ==========
 
 // 職業適性一覧取得

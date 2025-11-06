@@ -318,6 +318,10 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     animation: slideUp 0.2s ease-out;
   }
+
+  .modal-content.modal-large {
+    max-width: 700px;
+  }
   
   @keyframes slideUp {
     from {
@@ -449,17 +453,75 @@
     color: #3730a3;
   }
   
+  /* ユーザー選択UI */
+  .user-selection {
+    margin-top: 10px;
+  }
+
+  .selection-help {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #f9fafb;
+    border-radius: 6px;
+    border-left: 3px solid #3b82f6;
+  }
+
+  .user-checkboxes {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  .user-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 4px;
+  }
+
+  .user-checkbox-item:hover {
+    background-color: #f9fafb;
+  }
+
+  .user-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .username {
+    font-size: 14px;
+    color: #1f2937;
+    font-weight: 500;
+  }
+  
   .modal-footer {
     padding: 16px 24px;
     border-top: 1px solid #e5e7eb;
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
   }
   
-  .btn-close {
+  .btn-close,
+  .btn-edit-users {
     padding: 10px 20px;
-    background-color: #6b7280;
-    color: white;
     border: none;
     border-radius: 6px;
     font-size: 14px;
@@ -467,9 +529,23 @@
     cursor: pointer;
     transition: background-color 0.2s;
   }
+
+  .btn-close {
+    background-color: #6b7280;
+    color: white;
+  }
   
   .btn-close:hover {
     background-color: #4b5563;
+  }
+
+  .btn-edit-users {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .btn-edit-users:hover {
+    background-color: #2563eb;
   }
   
   /* 空状態 */

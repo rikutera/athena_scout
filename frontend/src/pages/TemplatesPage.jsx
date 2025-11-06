@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
+import { UserContext } from '../contexts/UserContext';
 import '../styles/TemplatesPage.css';
 
 export default function TemplatesPage() {
+  const { user } = useContext(UserContext);
   const [templates, setTemplates] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [outputRules, setOutputRules] = useState([]);
@@ -22,8 +24,14 @@ export default function TemplatesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [modalUsers, setModalUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const isAdmin = user?.user_role === 'admin';
+  const isAdminOrManager = user?.user_role === 'admin' || user?.user_role === 'manager';
 
   useEffect(() => {
     document.title = 'テンプレート管理 - Athena Scout';
@@ -147,13 +155,22 @@ export default function TemplatesPage() {
     setIsModalOpen(true);
     setModalLoading(true);
     setModalError(null);
+    setIsEditing(false);
     
     try {
-      const response = await apiClient.get(`/api/templates/${template.id}/users`);
-      setModalUsers(response.data);
+      // 割り当てられているユーザーを取得
+      const assignedResponse = await apiClient.get(`/api/templates/${template.id}/users`);
+      setModalUsers(assignedResponse.data);
+      setSelectedUserIds(assignedResponse.data.map(u => u.id));
+
+      // 管理者または責任者の場合は全ユーザーも取得
+      if (isAdminOrManager) {
+        const allUsersResponse = await apiClient.get('/api/users');
+        setAllUsers(allUsersResponse.data);
+      }
     } catch (error) {
-      console.error('Error fetching assigned users:', error);
-      setModalError('割り当てユーザーの取得に失敗しました');
+      console.error('Error fetching users:', error);
+      setModalError('ユーザー情報の取得に失敗しました');
     } finally {
       setModalLoading(false);
     }
@@ -188,7 +205,51 @@ export default function TemplatesPage() {
     setIsModalOpen(false);
     setSelectedTemplate(null);
     setModalUsers([]);
+    setAllUsers([]);
+    setSelectedUserIds([]);
     setModalError(null);
+    setIsEditing(false);
+  };
+
+  const handleEditMode = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // 元の選択状態に戻す
+    setSelectedUserIds(modalUsers.map(u => u.id));
+  };
+
+  const handleUserToggle = (userId) => {
+    setSelectedUserIds(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
+  };
+
+  const handleSaveAssignment = async () => {
+    try {
+      await apiClient.post(`/api/templates/${selectedTemplate.id}/assign-users`, {
+        user_ids: selectedUserIds
+      });
+
+      alert('ユーザー割り当てを更新しました');
+      
+      // 割り当てられたユーザーリストを再取得
+      const response = await apiClient.get(`/api/templates/${selectedTemplate.id}/users`);
+      setModalUsers(response.data);
+      setIsEditing(false);
+      
+      // テンプレート一覧も更新（管理者以外のユーザーの表示に影響する可能性があるため）
+      fetchTemplates();
+    } catch (error) {
+      console.error('Error saving user assignment:', error);
+      alert('ユーザー割り当ての更新に失敗しました');
+    }
   };
 
   const getRoleBadgeText = (role) => {
@@ -350,9 +411,9 @@ export default function TemplatesPage() {
       {/* モーダル */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>割り当てユーザー</h2>
+              <h2>割り当てユーザー管理</h2>
               <button className="modal-close" onClick={handleCloseModal}>✕</button>
             </div>
 
@@ -365,38 +426,89 @@ export default function TemplatesPage() {
 
               {modalError && <p className="error">{modalError}</p>}
 
-              {!modalLoading && modalUsers.length === 0 && (
-                <p className="no-users">割り当てられたユーザーがいません</p>
+              {!modalLoading && !isEditing && (
+                <>
+                  {modalUsers.length === 0 && (
+                    <p className="no-users">割り当てられたユーザーがいません</p>
+                  )}
+
+                  {modalUsers.length > 0 && (
+                    <table className="users-table">
+                      <thead>
+                        <tr>
+                          <th>ユーザー名</th>
+                          <th>ロール</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {modalUsers.map((user) => (
+                          <tr key={user.id}>
+                            <td>{user.username}</td>
+                            <td>
+                              <span className={`role-badge role-${user.user_role}`}>
+                                {getRoleBadgeText(user.user_role)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </>
               )}
 
-              {!modalLoading && modalUsers.length > 0 && (
-                <table className="users-table">
-                  <thead>
-                    <tr>
-                      <th>ユーザー名</th>
-                      <th>ロール</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {modalUsers.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.username}</td>
-                        <td>
+              {!modalLoading && isEditing && (
+                <div className="user-selection">
+                  <p className="selection-help">割り当てるユーザーをチェックしてください</p>
+                  <div className="user-checkboxes">
+                    {allUsers.map((user) => (
+                      <label key={user.id} className="user-checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(user.id)}
+                          onChange={() => handleUserToggle(user.id)}
+                        />
+                        <span className="user-info">
+                          <span className="username">{user.username}</span>
                           <span className={`role-badge role-${user.user_role}`}>
                             {getRoleBadgeText(user.user_role)}
                           </span>
-                        </td>
-                      </tr>
+                        </span>
+                      </label>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               )}
             </div>
 
             <div className="modal-footer">
-              <button className="btn-close" onClick={handleCloseModal}>
-                閉じる
-              </button>
+              {!isEditing && isAdminOrManager && (
+                <>
+                  <button className="btn-edit-users" onClick={handleEditMode}>
+                    ユーザーを編集
+                  </button>
+                  <button className="btn-close" onClick={handleCloseModal}>
+                    閉じる
+                  </button>
+                </>
+              )}
+              
+              {!isEditing && !isAdminOrManager && (
+                <button className="btn-close" onClick={handleCloseModal}>
+                  閉じる
+                </button>
+              )}
+
+              {isEditing && (
+                <>
+                  <button className="btn-save" onClick={handleSaveAssignment}>
+                    保存
+                  </button>
+                  <button className="btn-cancel" onClick={handleCancelEdit}>
+                    キャンセル
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
