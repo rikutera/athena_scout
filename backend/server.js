@@ -293,7 +293,7 @@ const requireAdminOrManager = async (req, res, next) => {
 
 // ========== ユーザー管理 API（管理者のみ）==========
 
-// 全ユーザー一覧取得
+// 全ユーザー一覧取得（管理者または責任者）
 app.get('/api/users', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const result = await pool.query(`
