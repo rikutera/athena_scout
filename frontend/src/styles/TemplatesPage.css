@@ -162,7 +162,7 @@
   
   .table-header {
     display: grid;
-    grid-template-columns: 200px 120px 150px 250px;
+    grid-template-columns: 200px 120px 1fr 250px;
     background-color: #007bff;
     color: white;
     font-weight: 600;
@@ -171,7 +171,7 @@
   
   .table-row {
     display: grid;
-    grid-template-columns: 200px 120px 150px 250px;
+    grid-template-columns: 200px 120px 1fr 250px;
     background-color: white;
     border-bottom: 1px solid #ddd;
     align-items: center;
@@ -220,6 +220,7 @@
   }
   
   .templates-page .btn-edit {
+    flex: 1;
     padding: 8px 12px;
     background-color: #ffc107;
     color: #333;
