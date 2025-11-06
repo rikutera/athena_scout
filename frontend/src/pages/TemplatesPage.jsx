@@ -161,34 +161,20 @@ export default function TemplatesPage() {
 
   const handleDuplicate = async (template) => {
     try {
-      // タイムスタンプを追加して名前の重複を回避
-      const now = new Date();
-      const timestamp = now.toLocaleString('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }).replace(/\//g, '').replace(/:/g, '').replace(/\s/g, '_');
+      // 新しい複製専用エンドポイントを使用（ユーザー割り当ても自動的に行われる）
+      const response = await apiClient.post(`/api/templates/${template.id}/duplicate`);
       
-      const newTemplateName = `${template.template_name}（コピー_${timestamp}）`;
-      
-      const duplicateData = {
-        template_name: newTemplateName,
-        job_type: template.job_type,
-        industry: template.industry,
-        company_requirement: template.company_requirement,
-        offer_template: template.offer_template,
-        output_rule_id: template.output_rule_id,
-      };
-      
-      await apiClient.post('/api/templates', duplicateData);
-      alert('テンプレートを複製しました');
-      fetchTemplates();
+      if (response.data.success) {
+        alert(`テンプレートを複製しました: ${response.data.template_name}`);
+        fetchTemplates();
+      }
     } catch (error) {
       console.error('Error duplicating template:', error);
-      alert('複製に失敗しました');
+      if (error.response?.data?.error) {
+        alert(error.response.data.error);
+      } else {
+        alert('複製に失敗しました');
+      }
     }
   };
 
