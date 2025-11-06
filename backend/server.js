@@ -824,8 +824,8 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
     const totalCost = inputCost + outputCost;
 
     await pool.query(
-      'INSERT INTO api_usage_logs (input_tokens, output_tokens, total_tokens, total_cost) VALUES ($1, $2, $3, $4)',
-      [inputTokens, outputTokens, totalTokens, totalCost]
+      'INSERT INTO api_usage_logs (user_id, input_tokens, output_tokens, total_tokens, total_cost) VALUES ($1, $2, $3, $4, $5)',
+      [req.user.userId, inputTokens, outputTokens, totalTokens, totalCost]
     );
     // ========== API使用量記録ここまで ==========
 
@@ -979,7 +979,59 @@ async function initializeDatabase() {
       )
     `);
 
-    console.log('Database tables created (users, login_logs, activity_logs, generation_history)');
+    // 職業適性テーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS job_types (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        definition TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT now(),
+        updated_at TIMESTAMP DEFAULT now()
+      )
+    `);
+
+    // 出力ルールテーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS output_rules (
+        id SERIAL PRIMARY KEY,
+        rule_name VARCHAR(255) NOT NULL,
+        rule_text TEXT NOT NULL,
+        description TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT now(),
+        updated_at TIMESTAMP DEFAULT now()
+      )
+    `);
+
+    // テンプレートテーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS templates (
+        id SERIAL PRIMARY KEY,
+        template_name VARCHAR(255) NOT NULL,
+        job_type VARCHAR(255),
+        industry VARCHAR(255),
+        company_requirement TEXT,
+        offer_template TEXT,
+        output_rule_id INTEGER REFERENCES output_rules(id),
+        created_at TIMESTAMP DEFAULT now(),
+        updated_at TIMESTAMP DEFAULT now()
+      )
+    `);
+
+    // API使用量ログテーブル作成
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS api_usage_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        input_tokens INTEGER NOT NULL,
+        output_tokens INTEGER NOT NULL,
+        total_tokens INTEGER NOT NULL,
+        total_cost NUMERIC NOT NULL,
+        created_at TIMESTAMP DEFAULT now()
+      )
+    `);
+
+    console.log('Database tables created (users, login_logs, activity_logs, generation_history, job_types, output_rules, templates, api_usage_logs)');
 
     // 管理者ユーザーを存在しない場合のみ作成（シーケンスを無駄に進めない）
     const adminExists = await pool.query('SELECT 1 FROM users WHERE username = $1 LIMIT 1', ['admin']);
