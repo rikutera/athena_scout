@@ -155,7 +155,7 @@
   
   .templates-grid {
     display: grid;
-    grid-template-columns: 200px 120px 1fr 380px;
+    grid-template-columns: 200px 120px 150px 200px;
     gap: 0;
     margin-top: 15px;
     border: 1px solid #ddd;
@@ -163,7 +163,7 @@
     overflow: hidden;
   }
   
-  .templates-grid .grid-header {
+  .grid-header {
     background-color: #007bff;
     color: white;
     padding: 12px;
@@ -178,7 +178,7 @@
     border-right: none;
   }
   
-  .templates-grid .grid-cell {
+  .grid-cell {
     background-color: white;
     padding: 12px;
     border-right: 1px solid #ddd;
@@ -222,6 +222,24 @@
   
   .templates-page .btn-view-users:hover {
     background-color: #138496;
+  }
+  
+  .templates-page .btn-duplicate {
+    flex: 1;
+    margin-top: 0;
+    padding: 8px 12px;
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .templates-page .btn-duplicate:hover {
+    background-color: #5a32a3;
   }
   
   .templates-page .btn-edit {
@@ -437,7 +455,7 @@
   /* レスポンシブ対応 */
   @media (max-width: 1024px) {
     .templates-grid {
-      grid-template-columns: 150px 100px 1fr 150px;
+      grid-template-columns: 150px 100px 120px 150px;
     }
   
     .grid-cell {

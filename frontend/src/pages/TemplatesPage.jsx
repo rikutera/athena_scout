@@ -159,6 +159,28 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleDuplicate = async (template) => {
+    try {
+      const newTemplateName = `${template.template_name}（コピー）`;
+      
+      const duplicateData = {
+        template_name: newTemplateName,
+        job_type: template.job_type,
+        industry: template.industry,
+        company_requirement: template.company_requirement,
+        offer_template: template.offer_template,
+        output_rule_id: template.output_rule_id,
+      };
+      
+      await apiClient.post('/api/templates', duplicateData);
+      alert('テンプレートを複製しました');
+      fetchTemplates();
+    } catch (error) {
+      console.error('Error duplicating template:', error);
+      alert('複製に失敗しました');
+    }
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTemplate(null);
@@ -245,7 +267,7 @@ export default function TemplatesPage() {
             <textarea
               value={formData.offer_template}
               onChange={(e) => setFormData({ ...formData, offer_template: e.target.value })}
-              placeholder="例：【・・・を経験する中で発揮された・・・の能力】"
+              placeholder="例：【業務内容】\n【今のあなたに期待すること】\n【待遇】"
               rows="4"
             />
           </div>
@@ -296,6 +318,12 @@ export default function TemplatesPage() {
                     className="btn-view-users"
                   >
                     割当ユーザー
+                  </button>
+                  <button
+                    onClick={() => handleDuplicate(template)}
+                    className="btn-duplicate"
+                  >
+                    複製
                   </button>
                   <button
                     onClick={() => handleEditClick(template)}
