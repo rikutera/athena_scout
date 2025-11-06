@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
+import { useUser } from '../contexts/UserContext';
 import '../styles/RecruitmentToolForm.css';
 
 export default function RecruitmentToolForm() {
@@ -14,6 +15,9 @@ export default function RecruitmentToolForm() {
   const [outputRuleId, setOutputRuleId] = useState('');
   const [studentProfile, setStudentProfile] = useState('');
   const [toastMessage, setToastMessage] = useState('');
+
+  const RecruitmentToolForm = () => {
+    const { user } = useUser();
 
   // 保存済みテンプレート
   const [savedTemplates, setSavedTemplates] = useState([]);
