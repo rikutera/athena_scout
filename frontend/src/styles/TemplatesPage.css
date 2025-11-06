@@ -174,7 +174,7 @@
   /* グリッドレイアウト */
   .templates-grid {
     display: grid;
-    grid-template-columns: 2.5fr 1.2fr 1.5fr 3fr;
+    grid-template-columns: 180px 150px 1fr 1fr;
     gap: 0;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
@@ -207,7 +207,7 @@
     min-height: 60px;
   }
   
-  templates-grid .grid-cell:nth-child(4n) {
+  .templates-grid .grid-cell:nth-child(4n) {
     border-right: none;
   }
   
@@ -223,10 +223,11 @@
   }
   
   /* ボタンスタイル */
-  .btn-view-users,
-  .btn-duplicate,
-  .btn-edit,
-  .btn-delete {
+  .templates-grid .btn-view-users,
+  .templates-grid .btn-duplicate,
+  .templates-grid .btn-edit,
+  .templates-grid .btn-delete {
+    flex: 1;
     padding: 8px 14px;
     border: none;
     border-radius: 5px;
