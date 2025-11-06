@@ -161,7 +161,18 @@ export default function TemplatesPage() {
 
   const handleDuplicate = async (template) => {
     try {
-      const newTemplateName = `${template.template_name}（コピー）`;
+      // タイムスタンプを追加して名前の重複を回避
+      const now = new Date();
+      const timestamp = now.toLocaleString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).replace(/\//g, '').replace(/:/g, '').replace(/\s/g, '_');
+      
+      const newTemplateName = `${template.template_name}（コピー_${timestamp}）`;
       
       const duplicateData = {
         template_name: newTemplateName,
