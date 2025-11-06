@@ -153,41 +153,35 @@
     color: #333;
   }
   
-  .templates-table {
+  .templates-grid {
+    display: grid;
+    grid-template-columns: 180px 120px 1fr 200px;
+    gap: 0;
     margin-top: 15px;
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
   }
   
-  .table-header {
-    display: grid;
-    grid-template-columns: 200px 120px 1fr 250px;
+  .grid-header {
     background-color: #007bff;
     color: white;
+    padding: 12px;
     font-weight: 600;
+    text-align: left;
+    border-right: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
   }
   
-  .table-row {
-    display: grid;
-    grid-template-columns: 200px 120px 1fr 250px;
+  .grid-header:last-child {
+    border-right: none;
+  }
+  
+  .grid-cell {
     background-color: white;
-    border-bottom: 1px solid #ddd;
-    align-items: center;
-  }
-  
-  .table-row:last-child {
-    border-bottom: none;
-  }
-  
-  .table-row:hover {
-    background-color: #f5f5f5;
-  }
-  
-  .col {
     padding: 12px;
     border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
     display: flex;
     align-items: center;
     min-height: 50px;
@@ -195,32 +189,25 @@
     overflow-wrap: break-word;
   }
   
-  .col:last-child {
+  .grid-cell:nth-child(4n) {
     border-right: none;
   }
   
-  .table-header .col {
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: none;
-  }
-  
-  .table-header .col:last-child {
-    border-right: none;
-  }
-  
-  .col-name {
+  .grid-cell:first-child {
     font-weight: 600;
     color: #333;
   }
   
-  .col-actions {
+  .grid-actions {
     display: flex;
     gap: 8px;
     justify-content: center;
+    border-right: none;
   }
   
   .templates-page .btn-edit {
     flex: 1;
+    margin-top: 0;
     padding: 8px 12px;
     background-color: #ffc107;
     color: #333;
@@ -230,7 +217,6 @@
     font-size: 0.9em;
     font-weight: 600;
     transition: background-color 0.3s ease;
-    white-space: nowrap;
   }
   
   .templates-page .btn-edit:hover {
@@ -256,12 +242,11 @@
   
   /* レスポンシブ対応 */
   @media (max-width: 1024px) {
-    .table-header,
-    .table-row {
-      grid-template-columns: 150px 100px 120px 200px;
+    .templates-grid {
+      grid-template-columns: 150px 100px 100px 150px;
     }
   
-    .col {
+    .grid-cell {
       padding: 10px;
       font-size: 0.9em;
     }
@@ -282,22 +267,22 @@
       grid-template-columns: 1fr;
     }
   
-    .table-header,
-    .table-row {
+    .templates-grid {
       grid-template-columns: 1fr;
     }
   
-    .col {
+    .grid-cell {
       border-right: none;
       border-bottom: 1px solid #ddd;
       padding: 8px;
     }
   
-    .table-header .col {
-      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    .grid-header {
+      border-right: none;
+      border-bottom: 1px solid #ddd;
     }
   
-    .col-actions {
+    .grid-actions {
       margin-top: 8px;
     }
   }

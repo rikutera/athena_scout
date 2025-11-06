@@ -235,19 +235,18 @@ export default function TemplatesPage() {
         {templates.length === 0 ? (
           <p>テンプレートがまだ登録されていません</p>
         ) : (
-          <div className="templates-table">
-            <div className="table-header">
-              <div className="col col-name">テンプレート名</div>
-              <div className="col col-type">職種</div>
-              <div className="col col-industry">業種</div>
-              <div className="col col-actions">操作</div>
-            </div>
+          <div className="templates-grid">
+            <div className="grid-header">テンプレート名</div>
+            <div className="grid-header">職種</div>
+            <div className="grid-header">業種</div>
+            <div className="grid-header">操作</div>
+
             {templates.map((template) => (
-              <div className="table-row" key={template.id}>
-                <div className="col col-name">{template.template_name}</div>
-                <div className="col col-type">{template.job_type}</div>
-                <div className="col col-industry">{template.industry || '—'}</div>
-                <div className="col col-actions">
+              <React.Fragment key={template.id}>
+                <div className="grid-cell">{template.template_name}</div>
+                <div className="grid-cell">{template.job_type}</div>
+                <div className="grid-cell">{template.industry || '—'}</div>
+                <div className="grid-cell grid-actions">
                   <button
                     onClick={() => handleEditClick(template)}
                     className="btn-edit"
@@ -261,7 +260,7 @@ export default function TemplatesPage() {
                     削除
                   </button>
                 </div>
-              </div>
+              </React.Fragment>
             ))}
           </div>
         )}
