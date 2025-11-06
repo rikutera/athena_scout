@@ -162,7 +162,8 @@ export default function TemplatesPage() {
   const handleDuplicate = async (template) => {
     try {
       // 新しい複製専用エンドポイントを使用（ユーザー割り当ても自動的に行われる）
-      const response = await apiClient.post(`/api/templates/${template.id}/duplicate`);
+      // 空のオブジェクトを送信（バックエンドがタイムスタンプを自動生成）
+      const response = await apiClient.post(`/api/templates/${template.id}/duplicate`, {});
       
       if (response.data.success) {
         alert(`テンプレートを複製しました: ${response.data.template_name}`);

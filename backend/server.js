@@ -738,26 +738,27 @@ app.delete('/api/templates/:id', authenticateToken, logActivity('テンプレー
 // テンプレート複製（ユーザー割り当て含む）
 app.post('/api/templates/:id/duplicate', authenticateToken, logActivity('テンプレート複製'), async (req, res) => {
   const client = await pool.connect();
-
+  
   try {
     await client.query('BEGIN');
-
+    
     const templateId = req.params.id;
-    const { new_template_name } = req.body;
-
+    // req.bodyがundefinedの場合に対応
+    const { new_template_name } = req.body || {};
+    
     // 元のテンプレートを取得
     const originalTemplate = await client.query(
       'SELECT * FROM templates WHERE id = $1',
       [templateId]
     );
-
+    
     if (originalTemplate.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'テンプレートが見つかりません' });
     }
-
+    
     const template = originalTemplate.rows[0];
-
+    
     // 新しいテンプレート名が指定されていない場合はタイムスタンプ付きで生成
     let newTemplateName = new_template_name;
     if (!newTemplateName) {
@@ -770,31 +771,31 @@ app.post('/api/templates/:id/duplicate', authenticateToken, logActivity('テン�
         minute: '2-digit',
         second: '2-digit'
       }).replace(/\//g, '').replace(/:/g, '').replace(/\s/g, '_');
-
+      
       newTemplateName = `${template.template_name}（コピー_${timestamp}）`;
     }
-
+    
     // 新しいテンプレートを作成
     const newTemplate = await client.query(
       'INSERT INTO templates (template_name, job_type, industry, company_requirement, offer_template, output_rule_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
       [newTemplateName, template.job_type, template.industry, template.company_requirement, template.offer_template, template.output_rule_id]
     );
-
+    
     const newTemplateId = newTemplate.rows[0].id;
-
+    
     // ユーザーの役割を確認
     const userResult = await client.query(
       'SELECT user_role FROM users WHERE id = $1',
       [req.user.userId]
     );
-
+    
     if (userResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'ユーザーが見つかりません' });
     }
-
+    
     const isAdmin = userResult.rows[0].user_role === 'admin';
-
+    
     if (isAdmin) {
       // 管理者の場合：元のテンプレートに割り当てられていた全ユーザーを新しいテンプレートにもコピー
       await client.query(`
@@ -808,11 +809,11 @@ app.post('/api/templates/:id/duplicate', authenticateToken, logActivity('テン�
         [req.user.userId, newTemplateId]
       );
     }
-
+    
     await client.query('COMMIT');
-
-    res.json({
-      success: true,
+    
+    res.json({ 
+      success: true, 
       id: newTemplateId,
       template_name: newTemplateName
     });
