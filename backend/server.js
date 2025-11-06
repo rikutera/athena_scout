@@ -509,7 +509,7 @@ app.post('/api/users/:id/output-rules', authenticateToken, requireAdmin, logActi
     const userId = req.params.id;
     const { output_rule_ids } = req.body; // [1, 2, 3] のような配列
 
-    if (!Array.isArray(output_rule_ids) || output_rule_ids.length === 0) {
+    if (!Array.isArray(output_rule_ids)) {
       return res.status(400).json({ error: '出力ルールIDの配列が必須です' });
     }
 
