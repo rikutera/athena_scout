@@ -160,6 +160,11 @@ export default function TemplatesPage() {
   };
 
   const handleDuplicate = async (template) => {
+    // 確認ダイアログを表示
+    if (!window.confirm(`「${template.template_name}」を複製しますか？`)) {
+      return; // キャンセルされた場合は何もしない
+    }
+
     try {
       // 新しい複製専用エンドポイントを使用（ユーザー割り当ても自動的に行われる）
       // 空のオブジェクトを送信（バックエンドがタイムスタンプを自動生成）
