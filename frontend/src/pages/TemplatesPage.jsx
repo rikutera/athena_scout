@@ -245,7 +245,7 @@ export default function TemplatesPage() {
             <textarea
               value={formData.offer_template}
               onChange={(e) => setFormData({ ...formData, offer_template: e.target.value })}
-              placeholder="例：【業務内容】\n【今のあなたに期待すること】\n【待遇】"
+              placeholder="例：【・・・を経験する中で発揮された・・・の能力】"
               rows="4"
             />
           </div>
