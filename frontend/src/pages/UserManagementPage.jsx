@@ -24,12 +24,21 @@ export default function UserManagementPage() {
   const [loginLogs, setLoginLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [generationHistory, setGenerationHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('login'); // 'login', 'activity', or 'generation'
+  const [activeTab, setActiveTab] = useState('login');
   const [logsLoading, setLogsLoading] = useState(false);
 
   // 生成履歴詳細モーダル
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
+
+  // テンプレート・出力ルール割り当てモーダル用の状態
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assigningUser, setAssigningUser] = useState(null);
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  const [availableOutputRules, setAvailableOutputRules] = useState([]);
+  const [selectedTemplates, setSelectedTemplates] = useState([]);
+  const [selectedOutputRules, setSelectedOutputRules] = useState([]);
+  const [assignLoading, setAssignLoading] = useState(false);
 
   useEffect(() => {
     document.title = 'ユーザー管理 - Athena Scout';
@@ -165,19 +174,16 @@ export default function UserManagementPage() {
     setLogsLoading(true);
 
     try {
-      // ログイン履歴を取得
       const loginResponse = await apiClient.get('/api/admin/login-logs', {
         params: { user_id: user.id, limit: 50 }
       });
       setLoginLogs(loginResponse.data);
 
-      // 利用履歴を取得
       const activityResponse = await apiClient.get('/api/admin/activity-logs', {
         params: { user_id: user.id, limit: 50 }
       });
       setActivityLogs(activityResponse.data);
 
-      // 生成履歴を取得
       const generationResponse = await apiClient.get('/api/admin/generation-history', {
         params: { user_id: user.id, limit: 50 }
       });
@@ -206,6 +212,93 @@ export default function UserManagementPage() {
   const handleCloseDetailModal = () => {
     setShowDetailModal(false);
     setSelectedHistory(null);
+  };
+
+  // ========== テンプレート・出力ルール割り当て関数 ==========
+
+  const handleShowAssignModal = async (user) => {
+    setAssigningUser(user);
+    setShowAssignModal(true);
+    setAssignLoading(true);
+    setError('');
+
+    try {
+      // 全テンプレート取得
+      const templatesResponse = await apiClient.get('/api/templates');
+      setAvailableTemplates(templatesResponse.data);
+
+      // 全出力ルール取得
+      const outputRulesResponse = await apiClient.get('/api/output-rules');
+      setAvailableOutputRules(outputRulesResponse.data);
+
+      // ユーザーに割り当てられたテンプレート取得
+      const userTemplatesResponse = await apiClient.get(`/api/users/${user.id}/templates`);
+      const userTemplateIds = userTemplatesResponse.data.map(t => t.id);
+      setSelectedTemplates(userTemplateIds);
+
+      // ユーザーに割り当てられた出力ルール取得
+      const userOutputRulesResponse = await apiClient.get(`/api/users/${user.id}/output-rules`);
+      const userOutputRuleIds = userOutputRulesResponse.data.map(r => r.id);
+      setSelectedOutputRules(userOutputRuleIds);
+    } catch (error) {
+      console.error('Error loading assignment data:', error);
+      setError('割り当てデータの読み込みに失敗しました');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const handleCloseAssignModal = () => {
+    setShowAssignModal(false);
+    setAssigningUser(null);
+    setAvailableTemplates([]);
+    setAvailableOutputRules([]);
+    setSelectedTemplates([]);
+    setSelectedOutputRules([]);
+  };
+
+  const handleToggleTemplate = (templateId) => {
+    setSelectedTemplates(prev =>
+      prev.includes(templateId)
+        ? prev.filter(id => id !== templateId)
+        : [...prev, templateId]
+    );
+  };
+
+  const handleToggleOutputRule = (ruleId) => {
+    setSelectedOutputRules(prev =>
+      prev.includes(ruleId)
+        ? prev.filter(id => id !== ruleId)
+        : [...prev, ruleId]
+    );
+  };
+
+  const handleSaveAssignments = async () => {
+    if (!assigningUser) return;
+
+    setAssignLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      // テンプレート割り当て保存
+      await apiClient.post(`/api/users/${assigningUser.id}/templates`, {
+        template_ids: selectedTemplates
+      });
+
+      // 出力ルール割り当て保存
+      await apiClient.post(`/api/users/${assigningUser.id}/output-rules`, {
+        output_rule_ids: selectedOutputRules
+      });
+
+      setMessage('割り当てを保存しました');
+      handleCloseAssignModal();
+    } catch (error) {
+      console.error('Error saving assignments:', error);
+      setError(error.response?.data?.error || '割り当ての保存に失敗しました');
+    } finally {
+      setAssignLoading(false);
+    }
   };
 
   if (loading) {
@@ -267,6 +360,12 @@ export default function UserManagementPage() {
                         : 'ログインなし'}
                     </td>
                     <td>
+                      <button
+                        onClick={() => handleShowAssignModal(user)}
+                        className="btn-assign-small"
+                      >
+                        割り当て
+                      </button>
                       <button
                         onClick={() => handleShowLogs(user)}
                         className="btn-logs-small"
@@ -552,6 +651,83 @@ export default function UserManagementPage() {
                   閉じる
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* テンプレート・出力ルール割り当てモーダル */}
+      {showAssignModal && assigningUser && (
+        <div className="modal-overlay" onClick={handleCloseAssignModal}>
+          <div className="modal-content assign-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{assigningUser.username} に割り当て</h2>
+              <button className="modal-close" onClick={handleCloseAssignModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              {assignLoading ? (
+                <p>読み込み中...</p>
+              ) : (
+                <>
+                  <div className="assignment-section">
+                    <h3>テンプレート</h3>
+                    <div className="checkbox-list">
+                      {availableTemplates.length === 0 ? (
+                        <p>利用可能なテンプレートがありません</p>
+                      ) : (
+                        availableTemplates.map(template => (
+                          <label key={template.id} className="checkbox-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedTemplates.includes(template.id)}
+                              onChange={() => handleToggleTemplate(template.id)}
+                            />
+                            <span>{template.template_name}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="assignment-section">
+                    <h3>出力ルール</h3>
+                    <div className="checkbox-list">
+                      {availableOutputRules.length === 0 ? (
+                        <p>利用可能な出力ルールがありません</p>
+                      ) : (
+                        availableOutputRules.map(rule => (
+                          <label key={rule.id} className="checkbox-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedOutputRules.includes(rule.id)}
+                              onChange={() => handleToggleOutputRule(rule.id)}
+                            />
+                            <span>{rule.rule_name}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button
+                onClick={handleSaveAssignments}
+                className="btn-save"
+                disabled={assignLoading}
+              >
+                保存
+              </button>
+              <button
+                onClick={handleCloseAssignModal}
+                className="btn-cancel"
+                disabled={assignLoading}
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>
