@@ -5,6 +5,9 @@ import { useUser } from '../contexts/UserContext';
 import '../styles/RecruitmentToolForm.css';
 
 export default function RecruitmentToolForm() {
+  // UserContext から user を取得（ここで呼ぶ）
+  const { user } = useUser();
+
   // フォーム状態
   const [templateName, setTemplateName] = useState('');
   const [editingTemplateId, setEditingTemplateId] = useState(null);
@@ -15,9 +18,6 @@ export default function RecruitmentToolForm() {
   const [outputRuleId, setOutputRuleId] = useState('');
   const [studentProfile, setStudentProfile] = useState('');
   const [toastMessage, setToastMessage] = useState('');
-
-  const RecruitmentToolForm = () => {
-    const { user } = useUser();
 
   // 保存済みテンプレート
   const [savedTemplates, setSavedTemplates] = useState([]);
@@ -39,6 +39,7 @@ export default function RecruitmentToolForm() {
     fetchTemplates();
     fetchJobTypes();
     fetchOutputRules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 保存済みテンプレート一覧取得
@@ -65,12 +66,10 @@ export default function RecruitmentToolForm() {
   const fetchOutputRules = async () => {
     try {
       const response = await apiClient.get('/api/output-rules');
-      // 有効なルール（is_active === true）のみをフィルタリング
       const activeRules = response.data.filter(rule => rule.is_active === true);
       setOutputRules(activeRules);
-      // デフォルトルールを選択（最初の有効なルール）
       if (activeRules.length > 0) {
-        setOutputRuleId(activeRules[0].id);
+        setOutputRuleId(String(activeRules[0].id)); // select の value は文字列にすることが多い
       }
     } catch (error) {
       console.error('Error fetching output rules:', error);
@@ -79,17 +78,18 @@ export default function RecruitmentToolForm() {
 
   // テンプレート選択時に値を埋める
   const handleSelectTemplate = async (templateId) => {
+    if (!templateId) return;
     try {
       const response = await apiClient.get(`/api/templates/${templateId}`);
       const template = response.data;
       setSelectedTemplate(templateId);
       setEditingTemplateId(templateId);
-      setTemplateName(template.template_name);
-      setJobType(template.job_type);
-      setIndustry(template.industry);
-      setCompanyRequirement(template.company_requirement);
-      setOfferTemplate(template.offer_template);
-      setOutputRuleId(template.output_rule_id || outputRules[0]?.id || '');
+      setTemplateName(template.template_name || '');
+      setJobType(template.job_type || '');
+      setIndustry(template.industry || '');
+      setCompanyRequirement(template.company_requirement || '');
+      setOfferTemplate(template.offer_template || '');
+      setOutputRuleId(String(template.output_rule_id || outputRules[0]?.id || ''));
     } catch (error) {
       console.error('Error loading template:', error);
     }
@@ -108,30 +108,23 @@ export default function RecruitmentToolForm() {
     }
 
     try {
+      const payload = {
+        template_name: templateName,
+        job_type: jobType,
+        industry: industry,
+        company_requirement: companyRequirement,
+        offer_template: offerTemplate,
+        output_rule_id: parseInt(outputRuleId, 10),
+      };
+
       if (editingTemplateId) {
-        // 既存テンプレート更新
-        await apiClient.put(`/api/templates/${editingTemplateId}`, {
-          template_name: templateName,
-          job_type: jobType,
-          industry: industry,
-          company_requirement: companyRequirement,
-          offer_template: offerTemplate,
-          output_rule_id: outputRuleId,
-        });
+        await apiClient.put(`/api/templates/${editingTemplateId}`, payload);
         alert('テンプレートを更新しました');
       } else {
-        // 新規テンプレート作成
-        await apiClient.post('/api/templates', {
-          template_name: templateName,
-          job_type: jobType,
-          industry: industry,
-          company_requirement: companyRequirement,
-          offer_template: offerTemplate,
-          output_rule_id: outputRuleId,
-        });
+        await apiClient.post('/api/templates', payload);
         alert('テンプレートを保存しました');
       }
-      fetchTemplates();
+      await fetchTemplates();
       handleCancelEdit();
     } catch (error) {
       console.error('Error saving template:', error);
@@ -148,7 +141,7 @@ export default function RecruitmentToolForm() {
     setIndustry('');
     setCompanyRequirement('');
     setOfferTemplate('');
-    setOutputRuleId(outputRules[0]?.id || '');
+    setOutputRuleId(outputRules[0]?.id ? String(outputRules[0].id) : '');
   };
 
   // トーストメッセージを表示
@@ -175,7 +168,7 @@ export default function RecruitmentToolForm() {
         company_requirement: companyRequirement,
         offer_template: offerTemplate,
         student_profile: studentProfile,
-        output_rule_id: parseInt(outputRuleId),
+        output_rule_id: parseInt(outputRuleId, 10),
       });
       setGeneratedComment(response.data.comment);
     } catch (error) {
@@ -194,7 +187,7 @@ export default function RecruitmentToolForm() {
 
   // 学生プロフィールをクリア
   const handleClearProfile = () => {
-    if (confirm('学生のプロフィール情報をクリアしますか？')) {
+    if (window.confirm('学生のプロフィール情報をクリアしますか？')) {
       setStudentProfile('');
     }
   };
@@ -241,7 +234,7 @@ export default function RecruitmentToolForm() {
         <h2>保存済みテンプレート</h2>
         <select
           value={selectedTemplate || ''}
-          onChange={(e) => handleSelectTemplate(parseInt(e.target.value))}
+          onChange={(e) => handleSelectTemplate(parseInt(e.target.value || '', 10))}
         >
           <option value="">テンプレートを選択...</option>
           {savedTemplates.map((template) => (
@@ -270,9 +263,9 @@ export default function RecruitmentToolForm() {
           <label>職種 *</label>
           <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
             <option value="">選択してください</option>
-            {jobTypes.map((jobType) => (
-              <option key={jobType.id} value={jobType.name}>
-                {jobType.name}
+            {jobTypes.map((jt) => (
+              <option key={jt.id} value={jt.name}>
+                {jt.name}
               </option>
             ))}
           </select>
@@ -320,7 +313,8 @@ export default function RecruitmentToolForm() {
           </select>
         </div>
 
-        {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
+        {/* 管理者 or 責任者のみ表示 */}
+        { (user?.user_role === 'admin' || user?.user_role === 'manager') && (
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={handleSaveTemplate} className="btn-save-template" style={{ flex: 1 }}>
               {editingTemplateId ? 'テンプレートを更新' : 'テンプレートを保存'}
