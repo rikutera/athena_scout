@@ -206,7 +206,7 @@ export default function RecruitmentToolForm() {
 
   return (
     <div className="recruitment-tool">
-      <h1>メッセージ生成ぃ</h1>
+      <h1>メッセージ生成</h1>
 
       <div className="usage-notice">
         <h3>⚠️ ご利用前に必ずお読みください</h3>
