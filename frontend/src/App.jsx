@@ -21,7 +21,9 @@ import './App.css'
 function App() {
   const { user, isAuthenticated, login, logout } = useUser();
   const navigate = useNavigate();
-  const { showWarning, timeLeft, extendSession, logout: timeoutLogout } = useSessionTimeout();
+  
+  // logoutをuseSessionTimeoutに渡す
+  const { showWarning, timeLeft, extendSession, logout: timeoutLogout } = useSessionTimeout(logout);
 
   const handleLoginSuccess = (userData) => {
     login(userData);
@@ -34,20 +36,8 @@ function App() {
   };
 
   const handleTimeoutLogout = () => {
-    // まずlocalStorageをクリア
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('lastActivity');
-    localStorage.removeItem('loginTime');
-    
-    // UserContextのlogoutを呼び出す
-    logout();
-    
-    // ログインページに遷移
-    navigate('/login', { 
-      replace: true,
-      state: { message: 'ログアウトしました。' }
-    });
+    logout(); // UserContextのlogoutを実行
+    navigate('/login', { replace: true });
   };
 
   // ログインページ
@@ -102,7 +92,6 @@ function App() {
                 </Link>
               </li>
             )}
-            {/* 👇 新規追加：使い方リンク（全ユーザー対象） */}
             <li className="nav-item">
               <Link to="/howto" className="nav-link">
                 利用方法・注意事項
@@ -137,7 +126,7 @@ function App() {
 
       <footer className="app-footer">
         <div className="footer-content">
-          <p>© 2025 株式会社リクテラ - Athena Scout（社内専用ツール）</p>
+          <p>© 2025 株式会社リクテラ - Athena Scout(社内専用ツール)</p>
           <div className="footer-links">
             <Link to="/terms">利用規約</Link>
             <span className="footer-divider">|</span>

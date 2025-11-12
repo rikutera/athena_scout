@@ -1,13 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const TIMEOUT_DURATION = 1 * 60 * 1000; // 2分（非アクティブタイムアウト）
 const WARNING_DURATION = 0.5 * 60 * 1000; // 1分前に警告
 const CHECK_INTERVAL = 10 * 1000; // 10秒ごとにチェック
 const ABSOLUTE_TIMEOUT = 2 * 60 * 60 * 1000; // 2時間（絶対的なタイムアウト）
 
-export const useSessionTimeout = () => {
-  const navigate = useNavigate();
+export const useSessionTimeout = (onLogout) => {
   const [showWarning, setShowWarning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
 
@@ -32,12 +30,11 @@ export const useSessionTimeout = () => {
     // 警告を非表示
     setShowWarning(false);
     
-    // ログインページに遷移
-    navigate('/login', { 
-      replace: true, // 履歴を置き換え
-      state: { message: 'セッションがタイムアウトしました。再度ログインしてください。' }
-    });
-  }, [navigate]);
+    // 親コンポーネントのlogoutを実行
+    if (onLogout) {
+      onLogout();
+    }
+  }, [onLogout]);
 
   const extendSession = useCallback(() => {
     updateActivity();
@@ -45,6 +42,12 @@ export const useSessionTimeout = () => {
   }, [updateActivity]);
 
   useEffect(() => {
+    // authTokenがない場合は何もしない（ログインページの場合）
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      return;
+    }
+
     updateActivity();
 
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
@@ -53,6 +56,13 @@ export const useSessionTimeout = () => {
     });
 
     const intervalId = setInterval(() => {
+      // 再度authTokenをチェック
+      const currentAuthToken = localStorage.getItem('authToken');
+      if (!currentAuthToken) {
+        clearInterval(intervalId);
+        return;
+      }
+
       const loginTime = parseInt(localStorage.getItem('loginTime') || Date.now().toString());
       const lastActivity = parseInt(localStorage.getItem('lastActivity') || '0');
       const now = Date.now();
