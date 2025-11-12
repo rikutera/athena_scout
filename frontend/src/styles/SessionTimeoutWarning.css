@@ -8,9 +8,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
-  animation: fadeIn 0.3s ease;
   z-index: 9999;
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto; /* 追加 */
 }
 
 @keyframes fadeIn {
@@ -28,6 +28,7 @@
   animation: slideIn 0.3s ease;
   position: relative;
   z-index: 10000;
+  pointer-events: auto; /* 追加 */
 }
 
 @keyframes slideIn {
@@ -80,6 +81,7 @@
   display: flex;
   gap: 15px;
   margin-top: 25px;
+  pointer-events: auto; /* 追加 */
 }
 
 .btn-extend,
@@ -92,6 +94,7 @@
   font-size: 16px;
   font-weight: 600;
   transition: all 0.3s;
+  pointer-events: auto; /* 追加 */
 }
 
 .btn-extend {
