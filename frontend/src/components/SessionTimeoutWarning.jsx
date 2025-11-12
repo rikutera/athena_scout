@@ -2,23 +2,24 @@ import React from 'react';
 import '../styles/SessionTimeoutWarning.css';
 
 export default function SessionTimeoutWarning({ timeLeft, onExtend, onLogout }) {
-  console.log('SessionTimeoutWarning rendered');
-  console.log('Props:', { timeLeft, onExtend, onLogout });
+  const handleOverlayClick = (e) => {
+    // オーバーレイ自体がクリックされた場合は何もしない
+    if (e.target === e.currentTarget) {
+      e.stopPropagation();
+    }
+  };
+
+  const handleModalClick = (e) => {
+    // モーダル内のクリックは伝播させない
+    e.stopPropagation();
+  };
 
   const handleLogoutClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('=== ログアウトボタンクリック ===');
-    console.log('Event:', e);
-    console.log('onLogout:', onLogout);
-    console.log('typeof onLogout:', typeof onLogout);
-    
-    if (typeof onLogout === 'function') {
-      console.log('onLogout関数を実行します');
+    if (onLogout) {
       onLogout();
-      console.log('onLogout関数を実行しました');
-    } else {
-      console.error('onLogoutが関数ではありません:', onLogout);
     }
   };
 
@@ -26,20 +27,20 @@ export default function SessionTimeoutWarning({ timeLeft, onExtend, onLogout }) 
     e.preventDefault();
     e.stopPropagation();
     console.log('=== 続行ボタンクリック ===');
-    if (typeof onExtend === 'function') {
+    if (onExtend) {
       onExtend();
     }
   };
 
   return (
-    <div className="timeout-modal-overlay" onClick={(e) => {
-      console.log('Overlay clicked');
-      e.stopPropagation();
-    }}>
-      <div className="timeout-modal" onClick={(e) => {
-        console.log('Modal clicked');
-        e.stopPropagation();
-      }}>
+    <div 
+      className="timeout-modal-overlay" 
+      onClick={handleOverlayClick}
+    >
+      <div 
+        className="timeout-modal" 
+        onClick={handleModalClick}
+      >
         <div className="timeout-icon">⏰</div>
         <h2>セッションタイムアウト警告</h2>
         <p>
@@ -50,16 +51,22 @@ export default function SessionTimeoutWarning({ timeLeft, onExtend, onLogout }) 
         </p>
         <div className="timeout-actions">
           <button 
-            className="btn-extend" 
+            className="btn-extend"
             onClick={handleExtendClick}
+            onMouseDown={handleExtendClick}
+            onTouchStart={handleExtendClick}
             type="button"
+            style={{ pointerEvents: 'auto' }}
           >
             続行
           </button>
           <button 
-            className="btn-logout-now" 
+            className="btn-logout-now"
             onClick={handleLogoutClick}
+            onMouseDown={handleLogoutClick}
+            onTouchStart={handleLogoutClick}
             type="button"
+            style={{ pointerEvents: 'auto' }}
           >
             ログアウト
           </button>
