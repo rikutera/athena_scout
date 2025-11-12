@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 
-const TIMEOUT_DURATION = 1 * 60 * 1000; // 2分（非アクティブタイムアウト）
-const WARNING_DURATION = 0.5 * 60 * 1000; // 1分前に警告
-const CHECK_INTERVAL = 10 * 1000; // 10秒ごとにチェック
-const ABSOLUTE_TIMEOUT = 2 * 60 * 60 * 1000; // 2時間（絶対的なタイムアウト）
+const TIMEOUT_DURATION = 30 * 60 * 1000; // 30分
+const WARNING_DURATION = 5 * 60 * 1000; // 5分前に警告
+const CHECK_INTERVAL = 60 * 1000; // 1分ごとにチェック
+const ABSOLUTE_TIMEOUT = 2 * 60 * 60 * 1000; // 2時間
 
 export const useSessionTimeout = (onLogout) => {
   const [showWarning, setShowWarning] = useState(false);
