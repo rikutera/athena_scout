@@ -12,23 +12,23 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// CORS設定
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
-  'http://localhost:5173'
-];
-
-console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
-console.log('Allowed origins:', allowedOrigins);
-
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('Received origin:', origin);
+    
     if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) === -1) {
+    
+    // より柔軟なチェック
+    const isAllowed = allowedOrigins.some(allowed => 
+      origin === allowed || origin === allowed + '/'
+    );
+    
+    if (!isAllowed) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      console.log('CORS rejected:', origin);
       return callback(new Error(msg), false);
     }
+    console.log('CORS accepted:', origin);
     return callback(null, true);
   },
   credentials: true,
