@@ -10,6 +10,7 @@
   align-items: center;
   z-index: 10000;
   animation: fadeIn 0.3s ease;
+  z-index: 9999;
 }
 
 @keyframes fadeIn {
@@ -25,6 +26,8 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   text-align: center;
   animation: slideIn 0.3s ease;
+  position: relative;
+  z-index: 10000;
 }
 
 @keyframes slideIn {
