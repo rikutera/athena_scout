@@ -42,27 +42,35 @@ export const useSessionTimeout = (onLogout) => {
   }, [updateActivity]);
 
   useEffect(() => {
-    // authTokenがない場合は何もしない（ログインページの場合）
+    // authTokenがない場合は何もしない
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
       return;
     }
-
+  
     updateActivity();
-
+  
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    
+    const activityHandler = (e) => {
+      // モーダル内のクリックは無視
+      if (e.target.closest('.timeout-modal')) {
+        return; // ← これを追加
+      }
+      updateActivity();
+    };
+  
     events.forEach(event => {
-      window.addEventListener(event, updateActivity);
+      window.addEventListener(event, activityHandler, true); // capture phase
     });
-
+  
     const intervalId = setInterval(() => {
-      // 再度authTokenをチェック
       const currentAuthToken = localStorage.getItem('authToken');
       if (!currentAuthToken) {
         clearInterval(intervalId);
         return;
       }
-
+  
       const loginTime = parseInt(localStorage.getItem('loginTime') || Date.now().toString());
       const lastActivity = parseInt(localStorage.getItem('lastActivity') || '0');
       const now = Date.now();
@@ -76,7 +84,7 @@ export const useSessionTimeout = (onLogout) => {
       
       const elapsed = now - lastActivity;
       const remaining = TIMEOUT_DURATION - elapsed;
-
+  
       if (elapsed >= TIMEOUT_DURATION) {
         logout();
       } else if (remaining <= WARNING_DURATION && remaining > 0) {
@@ -86,11 +94,11 @@ export const useSessionTimeout = (onLogout) => {
         setShowWarning(false);
       }
     }, CHECK_INTERVAL);
-
+  
     return () => {
       clearInterval(intervalId);
       events.forEach(event => {
-        window.removeEventListener(event, updateActivity);
+        window.removeEventListener(event, activityHandler, true);
       });
     };
   }, [updateActivity, logout]);
