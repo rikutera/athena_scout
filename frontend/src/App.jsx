@@ -34,17 +34,18 @@ function App() {
   };
 
   const handleTimeoutLogout = () => {
-    // localStorage を直接クリア
+    // まずlocalStorageをクリア
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
     localStorage.removeItem('loginTime');
-
-    // UserContextのlogout
+    
+    // UserContextのlogoutを呼び出す
     logout();
-
+    
     // ログインページに遷移
-    navigate('/login', {
+    navigate('/login', { 
+      replace: true,
       state: { message: 'ログアウトしました。' }
     });
   };

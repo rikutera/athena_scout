@@ -28,10 +28,10 @@ export const UserProvider = ({ children }) => {
   };
 
   const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
   };
 
   return (
