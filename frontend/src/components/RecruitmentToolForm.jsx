@@ -213,6 +213,7 @@ export default function RecruitmentToolForm() {
         <ul>
           <li><strong>個人情報（氏名、連絡先、住所等）は入力しないでください</strong></li>
           <li>生成されたコメントは必ず内容を確認・修正してから使用してください</li>
+          <li><strong>必ず学生ごとに</strong>コメントの反映をしてください</li>
           <li>AIが生成した内容のため、不適切な表現が含まれる可能性があります</li>
         </ul>
       </div>
