@@ -63,24 +63,24 @@ function App() {
           <ul className="nav-menu">
             <li className="nav-item">
               <Link to="/" className="nav-link">
-                スカウトメッセージ生成
+                メッセージ生成
               </Link>
             </li>
             {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
               <>
                 <li className="nav-item">
                   <Link to="/job-types" className="nav-link">
-                    職業適性管理
+                    職業適性
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="/output-rules" className="nav-link">
-                    出力ルール管理
+                    出力ルール
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="/templates" className="nav-link">
-                    テンプレート管理
+                    テンプレート
                   </Link>
                 </li>
               </>
@@ -88,7 +88,7 @@ function App() {
             {user?.user_role === 'admin' && (
               <li className="nav-item">
                 <Link to="/users" className="nav-link">
-                  ユーザー管理
+                  ユーザー
                 </Link>
               </li>
             )}
