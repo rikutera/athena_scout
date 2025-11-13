@@ -35,19 +35,11 @@ export default function AdminUsageDashboard() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/admin/generation-history/download-csv`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await apiClient.get('/api/admin/generation-history/download-csv', {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error('CSVのダウンロードに失敗しました');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
