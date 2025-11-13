@@ -1329,6 +1329,68 @@ app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async 
   }
 });
 
+// 管理者用：生成履歴をCSVでダウンロード
+app.get('/api/admin/generation-history/download-csv', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    let query = 'SELECT id, user_id, username, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
+    let params = [];
+
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const result = await pool.query(query, params);
+
+    // CSVヘッダー
+    const headers = ['ID', 'ユーザーID', 'ユーザー名', 'テンプレート名', '職種', '業種', '学生プロフィール', '生成コメント', '作成日時'];
+
+    // CSVデータの構築
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      // ダブルクォートをエスケープし、カンマ・改行・ダブルクォートを含む場合は全体をクォートで囲む
+      if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+
+    const csvRows = [
+      headers.join(','),
+      ...result.rows.map(row => [
+        escapeCSV(row.id),
+        escapeCSV(row.user_id),
+        escapeCSV(row.username),
+        escapeCSV(row.template_name),
+        escapeCSV(row.job_type),
+        escapeCSV(row.industry),
+        escapeCSV(row.student_profile),
+        escapeCSV(row.generated_comment),
+        escapeCSV(row.created_at)
+      ].join(','))
+    ];
+
+    const csv = csvRows.join('\n');
+
+    // UTF-8 BOMを追加（Excelで正しく開けるように）
+    const bom = '\uFEFF';
+    const csvWithBom = bom + csv;
+
+    // レスポンスヘッダーを設定してファイルをダウンロード
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="generation_history_${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csvWithBom);
+  } catch (error) {
+    console.error('Error downloading CSV:', error);
+    res.status(500).json({ error: 'CSVダウンロードに失敗しました' });
+  }
+});
+
 // エラーハンドリング
 app.use((err, req, res, next) => {
   console.error(err);

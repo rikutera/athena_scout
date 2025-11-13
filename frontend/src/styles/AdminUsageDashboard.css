@@ -137,3 +137,55 @@
     font-size: 14px;
     color: #856404;
   }
+
+  .download-section {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .download-section h2 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+  }
+
+  .download-section p {
+    margin: 0 0 20px 0;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .btn-download {
+    padding: 12px 24px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .btn-download:hover {
+    background: #218838;
+  }
+
+  .error-message {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+
+  .success-message {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }

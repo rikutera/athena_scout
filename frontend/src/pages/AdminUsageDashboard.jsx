@@ -7,6 +7,7 @@ export default function AdminUsageDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [downloadMessage, setDownloadMessage] = useState('');
 
   useEffect(() => {
     document.title = 'API使用量 - Athena Scout';
@@ -29,6 +30,40 @@ export default function AdminUsageDashboard() {
     }
   };
 
+  const handleDownloadCSV = async () => {
+    setDownloadMessage('');
+    setError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/admin/generation-history/download-csv`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('CSVのダウンロードに失敗しました');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `generation_history_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setDownloadMessage('CSVファイルのダウンロードが完了しました');
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      setError('CSVのダウンロードに失敗しました');
+    }
+  };
+
   if (loading) return <div className="admin-dashboard"><div className="loading">読み込み中...</div></div>;
   if (error) return <div className="admin-dashboard"><div className="error">{error}</div></div>;
   if (!stats) return <div className="admin-dashboard"><div className="error">データがありません</div></div>;
@@ -40,6 +75,18 @@ export default function AdminUsageDashboard() {
         <Link to="/my-page" className="btn-back">
           ← マイページに戻る
         </Link>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+      {downloadMessage && <div className="success-message">{downloadMessage}</div>}
+
+      {/* 生成履歴CSVダウンロード */}
+      <div className="download-section">
+        <h2>生成履歴データ</h2>
+        <p>全ユーザーの生成履歴をCSV形式でダウンロードできます。</p>
+        <button onClick={handleDownloadCSV} className="btn-download">
+          生成履歴をCSVでダウンロード
+        </button>
       </div>
 
       {/* 全期間の合計 */}
