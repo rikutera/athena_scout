@@ -70,21 +70,29 @@ export const useSessionTimeout = (onLogout) => {
         clearInterval(intervalId);
         return;
       }
-  
-      const loginTime = parseInt(localStorage.getItem('loginTime') || Date.now().toString());
-      const lastActivity = parseInt(localStorage.getItem('lastActivity') || '0');
+
+      const loginTimeStr = localStorage.getItem('loginTime');
+      const lastActivityStr = localStorage.getItem('lastActivity');
+
+      // loginTimeまたはlastActivityが存在しない場合は、初期化されていないので処理をスキップ
+      if (!loginTimeStr || !lastActivityStr) {
+        return;
+      }
+
+      const loginTime = parseInt(loginTimeStr);
+      const lastActivity = parseInt(lastActivityStr);
       const now = Date.now();
-      
+
       const timeSinceLogin = now - loginTime;
-      
+
       if (timeSinceLogin >= ABSOLUTE_TIMEOUT) {
         logout();
         return;
       }
-      
+
       const elapsed = now - lastActivity;
       const remaining = TIMEOUT_DURATION - elapsed;
-  
+
       if (elapsed >= TIMEOUT_DURATION) {
         logout();
       } else if (remaining <= WARNING_DURATION && remaining > 0) {
