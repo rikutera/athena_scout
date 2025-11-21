@@ -1,9 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../styles/HowToPage.css';
 
 const HowToPage = () => {
   const [openSection, setOpenSection] = useState(null);
   const sectionRefs = useRef({});
+
+  useEffect(() => {
+    document.title = '利用方法・注意事項 - Athena Scout';
+  }, []);
 
   const toggleSection = (section) => {
     const isOpening = openSection !== section;

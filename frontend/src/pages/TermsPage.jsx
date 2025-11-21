@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import '../styles/TermsPage.css';
 
 function TermsPage() {
+  useEffect(() => {
+    document.title = '利用規約 - Athena Scout';
+  }, []);
+
   return (
     <div className="terms-container">
       <h1>Athena Scout 利用規約</h1>
