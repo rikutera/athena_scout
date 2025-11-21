@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 const TIMEOUT_DURATION = 30 * 60 * 1000; // 30分
 const WARNING_DURATION = 5 * 60 * 1000; // 5分前に警告
@@ -9,13 +9,20 @@ export const useSessionTimeout = (onLogout) => {
   const [showWarning, setShowWarning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
 
+  // onLogoutをrefに保存して、依存配列の変更を防ぐ
+  const onLogoutRef = useRef(onLogout);
+
+  useEffect(() => {
+    onLogoutRef.current = onLogout;
+  }, [onLogout]);
+
   const updateActivity = useCallback(() => {
     const loginTime = localStorage.getItem('loginTime');
-    
+
     if (!loginTime) {
       localStorage.setItem('loginTime', Date.now().toString());
     }
-    
+
     localStorage.setItem('lastActivity', Date.now().toString());
     setShowWarning(false);
   }, []);
@@ -26,20 +33,26 @@ export const useSessionTimeout = (onLogout) => {
     localStorage.removeItem('user');
     localStorage.removeItem('lastActivity');
     localStorage.removeItem('loginTime');
-    
+
     // 警告を非表示
     setShowWarning(false);
-    
+
     // 親コンポーネントのlogoutを実行
-    if (onLogout) {
-      onLogout();
+    if (onLogoutRef.current) {
+      onLogoutRef.current();
     }
-  }, [onLogout]);
+  }, []);
 
   const extendSession = useCallback(() => {
-    updateActivity();
+    const loginTime = localStorage.getItem('loginTime');
+
+    if (!loginTime) {
+      localStorage.setItem('loginTime', Date.now().toString());
+    }
+
+    localStorage.setItem('lastActivity', Date.now().toString());
     setShowWarning(false);
-  }, [updateActivity]);
+  }, []);
 
   useEffect(() => {
     // authTokenがない場合は何もしない
@@ -47,23 +60,31 @@ export const useSessionTimeout = (onLogout) => {
     if (!authToken) {
       return;
     }
-  
-    updateActivity();
-  
+
+    // 初回のアクティビティ更新
+    const loginTime = localStorage.getItem('loginTime');
+    if (!loginTime) {
+      localStorage.setItem('loginTime', Date.now().toString());
+    }
+    localStorage.setItem('lastActivity', Date.now().toString());
+
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    
+
     const activityHandler = (e) => {
       // モーダル内のクリックは無視
       if (e.target.closest('.timeout-modal')) {
-        return; // ← これを追加
+        return;
       }
-      updateActivity();
+
+      // イベントハンドラ内で直接更新
+      localStorage.setItem('lastActivity', Date.now().toString());
+      setShowWarning(false);
     };
-  
+
     events.forEach(event => {
       window.addEventListener(event, activityHandler, true); // capture phase
     });
-  
+
     const intervalId = setInterval(() => {
       const currentAuthToken = localStorage.getItem('authToken');
       if (!currentAuthToken) {
@@ -86,7 +107,16 @@ export const useSessionTimeout = (onLogout) => {
       const timeSinceLogin = now - loginTime;
 
       if (timeSinceLogin >= ABSOLUTE_TIMEOUT) {
-        logout();
+        // LocalStorageをクリア
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('loginTime');
+        setShowWarning(false);
+
+        if (onLogoutRef.current) {
+          onLogoutRef.current();
+        }
         return;
       }
 
@@ -94,7 +124,16 @@ export const useSessionTimeout = (onLogout) => {
       const remaining = TIMEOUT_DURATION - elapsed;
 
       if (elapsed >= TIMEOUT_DURATION) {
-        logout();
+        // LocalStorageをクリア
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('loginTime');
+        setShowWarning(false);
+
+        if (onLogoutRef.current) {
+          onLogoutRef.current();
+        }
       } else if (remaining <= WARNING_DURATION && remaining > 0) {
         setShowWarning(true);
         setTimeLeft(Math.ceil(remaining / 1000 / 60));
@@ -102,14 +141,14 @@ export const useSessionTimeout = (onLogout) => {
         setShowWarning(false);
       }
     }, CHECK_INTERVAL);
-  
+
     return () => {
       clearInterval(intervalId);
       events.forEach(event => {
         window.removeEventListener(event, activityHandler, true);
       });
     };
-  }, [updateActivity, logout]);
+  }, []); // 依存配列を空にして、マウント時のみ実行
 
   return { showWarning, timeLeft, extendSession, logout };
 };

@@ -1225,7 +1225,30 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
     res.json({ success: true, comment: generatedComment });
   } catch (error) {
     console.error('Error generating comment:', error);
-    res.status(500).json({ error: 'コメント生成に失敗しました' });
+
+    // Claude APIのエラーを詳細に処理
+    if (error.status) {
+      // Anthropic SDKからのエラー
+      if (error.status === 529) {
+        return res.status(529).json({
+          error: 'Claude APIが過負荷状態です。しばらく時間をおいてから再度お試しください。'
+        });
+      } else if (error.status === 429) {
+        return res.status(429).json({
+          error: 'APIの利用制限に達しました。しばらく時間をおいてから再度お試しください。'
+        });
+      } else if (error.status >= 500) {
+        return res.status(error.status).json({
+          error: `Claude APIでサーバーエラーが発生しました（${error.status}）`
+        });
+      }
+    }
+
+    // その他のエラー
+    res.status(500).json({
+      error: 'コメント生成に失敗しました',
+      details: error.message
+    });
   }
 });
 

@@ -173,7 +173,30 @@ export default function RecruitmentToolForm() {
       setGeneratedComment(response.data.comment);
     } catch (error) {
       console.error('Error generating comment:', error);
-      alert('コメント生成に失敗しました');
+
+      // エラーメッセージを詳細に表示
+      let errorMessage = 'コメント生成に失敗しました';
+
+      if (error.response) {
+        // サーバーからのレスポンスがある場合
+        const status = error.response.status;
+        const serverError = error.response.data?.error;
+
+        if (status === 429) {
+          errorMessage = 'APIの利用制限に達しました。しばらく時間をおいてから再度お試しください。';
+        } else if (status === 529) {
+          errorMessage = 'Claude APIが過負荷状態です。しばらく時間をおいてから再度お試しください。';
+        } else if (status >= 500) {
+          errorMessage = `サーバーエラーが発生しました（${status}）\n${serverError || ''}`;
+        } else if (serverError) {
+          errorMessage = `エラー: ${serverError}`;
+        }
+      } else if (error.request) {
+        // リクエストは送信されたがレスポンスがない
+        errorMessage = 'サーバーに接続できませんでした。ネットワーク接続を確認してください。';
+      }
+
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
