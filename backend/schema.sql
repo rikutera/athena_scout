@@ -153,6 +153,36 @@ CREATE SEQUENCE public.users_id_seq
 
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 GRANT ALL ON SEQUENCE public.users_id_seq TO postgres;
+
+-- DROP SEQUENCE public.teams_id_seq;
+
+CREATE SEQUENCE public.teams_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.teams_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.teams_id_seq TO postgres;
+
+-- DROP SEQUENCE public.team_members_id_seq;
+
+CREATE SEQUENCE public.team_members_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.team_members_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.team_members_id_seq TO postgres;
 -- public.job_types definition
 
 -- Drop table
@@ -246,6 +276,28 @@ CREATE TABLE public.users (
 
 ALTER TABLE public.users OWNER TO postgres;
 GRANT ALL ON TABLE public.users TO postgres;
+
+
+-- public.teams definition
+
+-- Drop table
+
+-- DROP TABLE public.teams;
+
+CREATE TABLE public.teams (
+	id serial4 NOT NULL,
+	team_name varchar(100) NOT NULL,
+	description text NULL,
+	created_at timestamp DEFAULT now() NULL,
+	updated_at timestamp DEFAULT now() NULL,
+	CONSTRAINT teams_pkey PRIMARY KEY (id),
+	CONSTRAINT teams_team_name_key UNIQUE (team_name)
+);
+
+-- Permissions
+
+ALTER TABLE public.teams OWNER TO postgres;
+GRANT ALL ON TABLE public.teams TO postgres;
 
 
 -- public.activity_logs definition
@@ -391,6 +443,33 @@ CREATE TABLE public.user_templates (
 
 ALTER TABLE public.user_templates OWNER TO postgres;
 GRANT ALL ON TABLE public.user_templates TO postgres;
+
+
+-- public.team_members definition
+
+-- Drop table
+
+-- DROP TABLE public.team_members;
+
+CREATE TABLE public.team_members (
+	id serial4 NOT NULL,
+	team_id int4 NOT NULL,
+	user_id int4 NOT NULL,
+	is_manager bool DEFAULT false NULL,
+	created_at timestamp DEFAULT now() NULL,
+	CONSTRAINT team_members_pkey PRIMARY KEY (id),
+	CONSTRAINT team_members_team_id_user_id_key UNIQUE (team_id, user_id),
+	CONSTRAINT team_members_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.teams(id) ON DELETE CASCADE,
+	CONSTRAINT team_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_team_members_team_id ON public.team_members USING btree (team_id);
+CREATE INDEX idx_team_members_user_id ON public.team_members USING btree (user_id);
+CREATE INDEX idx_team_members_is_manager ON public.team_members USING btree (is_manager);
+
+-- Permissions
+
+ALTER TABLE public.team_members OWNER TO postgres;
+GRANT ALL ON TABLE public.team_members TO postgres;
 
 
 
