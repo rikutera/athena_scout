@@ -7,11 +7,8 @@ export const UserProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    console.log('[UserContext] Initial mount - checking for existing session');
     const token = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('user');
-
-    console.log('[UserContext] Found:', { hasToken: !!token, hasSavedUser: !!savedUser });
 
     if (token && savedUser) {
       setIsAuthenticated(true);
@@ -22,14 +19,10 @@ export const UserProvider = ({ children }) => {
       const lastActivity = localStorage.getItem('lastActivity');
       const now = Date.now().toString();
 
-      console.log('[UserContext] Existing timestamps:', { loginTime, lastActivity });
-
       if (!loginTime) {
-        console.log('[UserContext] Initializing missing loginTime');
         localStorage.setItem('loginTime', now);
       }
       if (!lastActivity) {
-        console.log('[UserContext] Initializing missing lastActivity');
         localStorage.setItem('lastActivity', now);
       }
     }
@@ -41,14 +34,12 @@ export const UserProvider = ({ children }) => {
   };
 
   const login = (userData) => {
-    console.log('[UserContext] Login called with:', userData);
     setIsAuthenticated(true);
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
 
     // セッションタイムアウト用のタイムスタンプを初期化
     const now = Date.now().toString();
-    console.log('[UserContext] Setting timestamps:', { loginTime: now, lastActivity: now });
     localStorage.setItem('loginTime', now);
     localStorage.setItem('lastActivity', now);
   };

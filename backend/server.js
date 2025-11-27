@@ -292,32 +292,25 @@ const requireAdmin = async (req, res, next) => {
 // ========== 管理者または責任者権限チェックミドルウェア ==========
 const requireAdminOrManager = async (req, res, next) => {
   try {
-    console.log('[requireAdminOrManager] Checking permissions for userId:', req.user.userId);
-
     const result = await pool.query(
       'SELECT user_role FROM users WHERE id = $1',
       [req.user.userId]
     );
 
-    console.log('[requireAdminOrManager] Query result:', result.rows);
-
     if (result.rows.length === 0) {
-      console.log('[requireAdminOrManager] User not found');
       return res.status(403).json({ error: 'ユーザーが見つかりません' });
     }
 
     const userRole = result.rows[0].user_role;
-    console.log('[requireAdminOrManager] User role:', userRole);
 
     if (userRole !== 'admin' && userRole !== 'manager') {
-      console.log('[requireAdminOrManager] Insufficient permissions');
       return res.status(403).json({ error: '管理者または責任者権限が必要です' });
     }
 
-    req.user.userRole = userRole; // Add role to request for later use
+    req.user.userRole = userRole;
     next();
   } catch (error) {
-    console.error('[requireAdminOrManager] Error checking role:', error);
+    console.error('Error checking role:', error);
     res.status(500).json({ error: '権限チェックに失敗しました' });
   }
 };
