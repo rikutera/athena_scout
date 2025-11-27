@@ -9,6 +9,7 @@ import OutputRulesPage from './pages/OutputRulesPage'
 import LoginPage from './pages/LoginPage'
 import MyPages from './pages/MyPages'
 import UserManagementPage from './pages/UserManagementPage'
+import TeamsPage from './pages/TeamsPage'
 import TermsPage from './pages/TermsPage'
 import HowToPage from './pages/HowToPage';
 import AdminUsageDashboard from './pages/AdminUsageDashboard'
@@ -86,11 +87,18 @@ function App() {
               </>
             )}
             {user?.user_role === 'admin' && (
-              <li className="nav-item">
-                <Link to="/users" className="nav-link">
-                  ユーザー
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link to="/teams" className="nav-link">
+                    チーム
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/users" className="nav-link">
+                    ユーザー
+                  </Link>
+                </li>
+              </>
             )}
             <li className="nav-item">
               <Link to="/howto" className="nav-link">
@@ -118,6 +126,7 @@ function App() {
           <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
           <Route path="/howto" element={<ProtectedRoute element={<HowToPage />} isAuthenticated={isAuthenticated} />} />
+          <Route path="/teams" element={<AdminRoute element={<TeamsPage />} />} />
           <Route path="/users" element={<AdminRoute element={<UserManagementPage />} />} />
           <Route path="/admin/usage" element={<AdminRoute element={<AdminUsageDashboard />} />} />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
