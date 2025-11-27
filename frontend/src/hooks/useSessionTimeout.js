@@ -58,15 +58,21 @@ export const useSessionTimeout = (onLogout) => {
     // authTokenがない場合は何もしない
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
+      console.log('[SessionTimeout] No authToken found, skipping timeout setup');
       return;
     }
 
     // 初回のアクティビティ更新
     const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+
     if (!loginTime) {
-      localStorage.setItem('loginTime', Date.now().toString());
+      console.log('[SessionTimeout] Initializing loginTime:', now);
+      localStorage.setItem('loginTime', now.toString());
     }
-    localStorage.setItem('lastActivity', Date.now().toString());
+
+    console.log('[SessionTimeout] Setting lastActivity:', now);
+    localStorage.setItem('lastActivity', now.toString());
 
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
 
@@ -88,6 +94,7 @@ export const useSessionTimeout = (onLogout) => {
     const intervalId = setInterval(() => {
       const currentAuthToken = localStorage.getItem('authToken');
       if (!currentAuthToken) {
+        console.log('[SessionTimeout] No authToken, clearing interval');
         clearInterval(intervalId);
         return;
       }
@@ -97,6 +104,10 @@ export const useSessionTimeout = (onLogout) => {
 
       // loginTimeまたはlastActivityが存在しない場合は、初期化されていないので処理をスキップ
       if (!loginTimeStr || !lastActivityStr) {
+        console.log('[SessionTimeout] Missing timestamps, skipping check', {
+          loginTimeStr,
+          lastActivityStr
+        });
         return;
       }
 
@@ -105,8 +116,17 @@ export const useSessionTimeout = (onLogout) => {
       const now = Date.now();
 
       const timeSinceLogin = now - loginTime;
+      const elapsed = now - lastActivity;
+      const remaining = TIMEOUT_DURATION - elapsed;
+
+      console.log('[SessionTimeout] Check:', {
+        timeSinceLogin: Math.floor(timeSinceLogin / 1000 / 60) + ' min',
+        elapsed: Math.floor(elapsed / 1000 / 60) + ' min',
+        remaining: Math.floor(remaining / 1000 / 60) + ' min'
+      });
 
       if (timeSinceLogin >= ABSOLUTE_TIMEOUT) {
+        console.log('[SessionTimeout] ABSOLUTE TIMEOUT - logging out');
         // LocalStorageをクリア
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -120,10 +140,8 @@ export const useSessionTimeout = (onLogout) => {
         return;
       }
 
-      const elapsed = now - lastActivity;
-      const remaining = TIMEOUT_DURATION - elapsed;
-
       if (elapsed >= TIMEOUT_DURATION) {
+        console.log('[SessionTimeout] INACTIVITY TIMEOUT - logging out');
         // LocalStorageをクリア
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -135,6 +153,7 @@ export const useSessionTimeout = (onLogout) => {
           onLogoutRef.current();
         }
       } else if (remaining <= WARNING_DURATION && remaining > 0) {
+        console.log('[SessionTimeout] WARNING - showing timeout warning');
         setShowWarning(true);
         setTimeLeft(Math.ceil(remaining / 1000 / 60));
       } else {
