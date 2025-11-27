@@ -57,7 +57,7 @@ function App() {
         <div className="nav-container">
           <Link to="/" className="nav-logo">
             <img src="/logo.png" alt="logo" className="nav-logo-icon" />
-            Athena Scout develop
+            Athena Scout dev
           </Link>
 
           <ul className="nav-menu">
