@@ -55,8 +55,7 @@ app.use(cors({
 }));
 
 // ✅ 追加: プリフライトリクエストへの対応
-app.options('*', cors()); // これをuse()に変更
-app.use(cors());
+app.use(cors(corsOptions));
 
 // ========== リクエストログ追加 ==========
 app.use((req, res, next) => {
