@@ -25,25 +25,37 @@ app.use(cors({
   origin: function (origin, callback) {
     console.log('Received origin:', origin);
 
+    // オリジンがない場合（同一オリジンリクエストやPostmanなど）を許可
     if (!origin) return callback(null, true);
 
-    // より柔軟なチェック
-    const isAllowed = allowedOrigins.some(allowed =>
+    // 完全一致チェック
+    const isExactMatch = allowedOrigins.some(allowed =>
       origin === allowed || origin === allowed + '/'
     );
 
-    if (!isAllowed) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      console.log('CORS rejected:', origin);
-      return callback(new Error(msg), false);
+    if (isExactMatch) {
+      console.log('CORS accepted (exact match):', origin);
+      return callback(null, true);
     }
-    console.log('CORS accepted:', origin);
-    return callback(null, true);
+
+    // ✅ 追加: Vercelドメインの柔軟なチェック
+    if (origin.match(/^https:\/\/recruitment-tool.*\.vercel\.app$/)) {
+      console.log('CORS accepted (Vercel domain):', origin);
+      return callback(null, true);
+    }
+
+    // 拒否
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    console.log('CORS rejected:', origin);
+    return callback(new Error(msg), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// ✅ 追加: プリフライトリクエストへの対応
+app.options('*', cors());
 
 // ========== リクエストログ追加 ==========
 app.use((req, res, next) => {
