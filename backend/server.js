@@ -54,9 +54,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ 追加: プリフライトリクエストへの対応
-app.use(cors(corsOptions));
-
 // ========== リクエストログ追加 ==========
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
