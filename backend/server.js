@@ -609,7 +609,7 @@ app.delete('/api/users/:id/output-rules/:outputRuleId', authenticateToken, requi
 // ========== ログイン履歴・利用履歴 API（管理者のみ）==========
 
 // ログイン履歴取得
-app.get('/api/admin/login-logs', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
 
@@ -633,7 +633,7 @@ app.get('/api/admin/login-logs', authenticateToken, requireAdmin, async (req, re
 });
 
 // 利用履歴取得
-app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/activity-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
 
@@ -1373,7 +1373,7 @@ app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res)
 });
 
 // 管理者用：特定ユーザーの生成履歴取得
-app.get('/api/admin/generation-history', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/generation-history', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { user_id, limit = 100 } = req.query;
 
