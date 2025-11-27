@@ -35,6 +35,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       localStorage.removeItem('lastActivity');
+      localStorage.removeItem('loginTime');
       window.location.href = '/login';
     }
     return Promise.reject(error);
