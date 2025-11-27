@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 import apiClient from '../utils/apiClient';
 import '../styles/UserManagement.css';
 
 export default function UserManagementPage() {
+  const { user: currentUser } = useUser();
+  const isAdmin = currentUser?.user_role === 'admin';
+
   const [users, setUsers] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -319,11 +323,13 @@ export default function UserManagementPage() {
 
       {!showAddForm ? (
         <>
-          <div className="action-bar">
-            <button onClick={handleAddNew} className="btn-add">
-              + 新規ユーザー追加
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="action-bar">
+              <button onClick={handleAddNew} className="btn-add">
+                + 新規ユーザー追加
+              </button>
+            </div>
+          )}
 
           <div className="users-table">
             <table>
@@ -361,29 +367,33 @@ export default function UserManagementPage() {
                     </td>
                     <td>
                       <button
-                        onClick={() => handleShowAssignModal(user)}
-                        className="btn-assign-small"
-                      >
-                        割り当て
-                      </button>
-                      <button
                         onClick={() => handleShowLogs(user)}
                         className="btn-logs-small"
                       >
                         履歴
                       </button>
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="btn-edit-small"
-                      >
-                        編集
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id, user.username)}
-                        className="btn-delete-small"
-                      >
-                        削除
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={() => handleShowAssignModal(user)}
+                            className="btn-assign-small"
+                          >
+                            割り当て
+                          </button>
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="btn-edit-small"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user.id, user.username)}
+                            className="btn-delete-small"
+                          >
+                            削除
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
