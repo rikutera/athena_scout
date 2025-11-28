@@ -680,11 +680,18 @@ app.get('/api/templates', authenticateToken, async (req, res) => {
         'SELECT * FROM templates ORDER BY created_at DESC'
       );
     } else {
-      // 一般ユーザー：割り当てられたテンプレートのみ表示
+      // 一般ユーザー：ユーザー個別割り当て + チーム割り当てのテンプレートを表示
       result = await pool.query(`
-        SELECT t.* FROM templates t
-        INNER JOIN user_templates ut ON t.id = ut.template_id
-        WHERE ut.user_id = $1
+        SELECT DISTINCT t.* FROM templates t
+        WHERE t.id IN (
+          -- ユーザー個別割り当て
+          SELECT ut.template_id FROM user_templates ut WHERE ut.user_id = $1
+          UNION
+          -- チーム割り当て
+          SELECT tt.template_id FROM team_templates tt
+          INNER JOIN team_members tm ON tt.team_id = tm.team_id
+          WHERE tm.user_id = $1
+        )
         ORDER BY t.created_at DESC
       `, [req.user.userId]);
     }
@@ -1053,12 +1060,19 @@ app.get('/api/output-rules', authenticateToken, async (req, res) => {
         'SELECT id, rule_name, rule_text, description, is_active FROM output_rules ORDER BY created_at ASC'
       );
     } else {
-      // 一般ユーザー：割り当てられた出力ルールのみ表示
+      // 一般ユーザー：ユーザー個別割り当て + チーム割り当ての出力ルールを表示
       result = await pool.query(`
-        SELECT orules.id, orules.rule_name, orules.rule_text, orules.description, orules.is_active
+        SELECT DISTINCT orules.id, orules.rule_name, orules.rule_text, orules.description, orules.is_active
         FROM output_rules orules
-        INNER JOIN user_output_rules uor ON orules.id = uor.output_rule_id
-        WHERE uor.user_id = $1
+        WHERE orules.id IN (
+          -- ユーザー個別割り当て
+          SELECT uor.output_rule_id FROM user_output_rules uor WHERE uor.user_id = $1
+          UNION
+          -- チーム割り当て
+          SELECT tor.output_rule_id FROM team_output_rules tor
+          INNER JOIN team_members tm ON tor.team_id = tm.team_id
+          WHERE tm.user_id = $1
+        )
         ORDER BY orules.created_at ASC
       `, [req.user.userId]);
     }
