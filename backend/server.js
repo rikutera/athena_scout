@@ -1472,10 +1472,10 @@ app.get('/api/admin/generation-history/download-csv', authenticateToken, require
   }
 });
 
-// ========== チーム管理 API（管理者のみ）==========
+// ========== チーム管理 API（管理者・責任者）==========
 
 // チーム一覧取得
-app.get('/api/admin/teams', authenticateToken, requireAdmin, async (_req, res) => {
+app.get('/api/admin/teams', authenticateToken, requireAdminOrManager, async (_req, res) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -1499,7 +1499,7 @@ app.get('/api/admin/teams', authenticateToken, requireAdmin, async (_req, res) =
 });
 
 // チーム詳細取得（メンバー情報含む）
-app.get('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/teams/:id', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const teamId = req.params.id;
 
@@ -1539,7 +1539,7 @@ app.get('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, res
 });
 
 // チーム作成
-app.post('/api/admin/teams', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/api/admin/teams', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { team_name, description } = req.body;
 
@@ -1564,7 +1564,7 @@ app.post('/api/admin/teams', authenticateToken, requireAdmin, async (req, res) =
 });
 
 // チーム更新
-app.put('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.put('/api/admin/teams/:id', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const teamId = req.params.id;
     const { team_name, description } = req.body;
@@ -1594,7 +1594,7 @@ app.put('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, res
 });
 
 // チーム削除
-app.delete('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/admin/teams/:id', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const teamId = req.params.id;
 
@@ -1615,7 +1615,7 @@ app.delete('/api/admin/teams/:id', authenticateToken, requireAdmin, async (req, 
 });
 
 // チームメンバー追加
-app.post('/api/admin/teams/:teamId/members', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/api/admin/teams/:teamId/members', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { user_id, is_manager } = req.body;
@@ -1653,7 +1653,7 @@ app.post('/api/admin/teams/:teamId/members', authenticateToken, requireAdmin, as
 });
 
 // チームメンバーの責任者フラグ更新
-app.put('/api/admin/teams/:teamId/members/:userId', authenticateToken, requireAdmin, async (req, res) => {
+app.put('/api/admin/teams/:teamId/members/:userId', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId, userId } = req.params;
     const { is_manager } = req.body;
@@ -1675,7 +1675,7 @@ app.put('/api/admin/teams/:teamId/members/:userId', authenticateToken, requireAd
 });
 
 // チームメンバー削除
-app.delete('/api/admin/teams/:teamId/members/:userId', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/admin/teams/:teamId/members/:userId', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId, userId } = req.params;
 
@@ -1700,7 +1700,7 @@ app.delete('/api/admin/teams/:teamId/members/:userId', authenticateToken, requir
 // ============================================
 
 // チームに割り当てられたテンプレート一覧を取得
-app.get('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/teams/:teamId/templates', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId } = req.params;
 
@@ -1721,7 +1721,7 @@ app.get('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, a
 });
 
 // チームにテンプレートを割り当て
-app.post('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/api/admin/teams/:teamId/templates', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { templateId } = req.body;
@@ -1765,7 +1765,7 @@ app.post('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, 
 });
 
 // チームからテンプレートの割り当てを解除
-app.delete('/api/admin/teams/:teamId/templates/:templateId', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/admin/teams/:teamId/templates/:templateId', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId, templateId } = req.params;
 
@@ -1790,7 +1790,7 @@ app.delete('/api/admin/teams/:teamId/templates/:templateId', authenticateToken, 
 // ============================================
 
 // チームに割り当てられた出力ルール一覧を取得
-app.get('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId } = req.params;
 
@@ -1811,7 +1811,7 @@ app.get('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin
 });
 
 // チームに出力ルールを割り当て
-app.post('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { outputRuleId } = req.body;
@@ -1855,7 +1855,7 @@ app.post('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmi
 });
 
 // チームから出力ルールの割り当てを解除
-app.delete('/api/admin/teams/:teamId/output-rules/:outputRuleId', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/admin/teams/:teamId/output-rules/:outputRuleId', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
     const { teamId, outputRuleId } = req.params;
 

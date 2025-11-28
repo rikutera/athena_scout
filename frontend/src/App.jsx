@@ -86,7 +86,7 @@ function App() {
                 </li>
               </>
             )}
-            {user?.user_role === 'admin' && (
+            {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
               <li className="nav-item">
                 <Link to="/teams" className="nav-link">
                   チーム
@@ -126,7 +126,7 @@ function App() {
           <Route path="/output-rules" element={<AdminOrManagerRoute element={<OutputRulesPage />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPages />} isAuthenticated={isAuthenticated} />} />
           <Route path="/howto" element={<ProtectedRoute element={<HowToPage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/teams" element={<AdminRoute element={<TeamsPage />} />} />
+          <Route path="/teams" element={<AdminOrManagerRoute element={<TeamsPage />} />} />
           <Route path="/users" element={<AdminOrManagerRoute element={<UserManagementPage />} />} />
           <Route path="/admin/usage" element={<AdminRoute element={<AdminUsageDashboard />} />} />
           <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
