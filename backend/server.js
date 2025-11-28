@@ -1691,7 +1691,7 @@ app.get('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, a
     const { teamId } = req.params;
 
     const result = await pool.query(
-      `SELECT t.id, t.template_name, t.template_content, t.created_at
+      `SELECT t.id, t.template_name, t.created_at
        FROM templates t
        INNER JOIN team_templates tt ON t.id = tt.template_id
        WHERE tt.team_id = $1
@@ -1781,7 +1781,7 @@ app.get('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin
     const { teamId } = req.params;
 
     const result = await pool.query(
-      `SELECT o.id, o.rule_name, o.rule_content, o.created_at
+      `SELECT o.id, o.rule_name, o.created_at
        FROM output_rules o
        INNER JOIN team_output_rules tor ON o.id = tor.output_rule_id
        WHERE tor.team_id = $1
