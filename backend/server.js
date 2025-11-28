@@ -1062,7 +1062,7 @@ app.get('/api/output-rules', authenticateToken, async (req, res) => {
     } else {
       // 一般ユーザー：ユーザー個別割り当て + チーム割り当ての出力ルールを表示
       result = await pool.query(`
-        SELECT DISTINCT orules.id, orules.rule_name, orules.rule_text, orules.description, orules.is_active
+        SELECT DISTINCT orules.id, orules.rule_name, orules.rule_text, orules.description, orules.is_active, orules.created_at
         FROM output_rules orules
         WHERE orules.id IN (
           -- ユーザー個別割り当て
