@@ -75,7 +75,8 @@ export const useSessionTimeout = (onLogout) => {
 
     const activityHandler = (e) => {
       // モーダル内のクリックは無視
-      if (e.target.closest('.timeout-modal')) {
+      // e.targetがElement型であることを確認してからclosestを使用
+      if (e.target && typeof e.target.closest === 'function' && e.target.closest('.timeout-modal')) {
         return;
       }
 
