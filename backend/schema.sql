@@ -183,6 +183,36 @@ CREATE SEQUENCE public.team_members_id_seq
 
 ALTER SEQUENCE public.team_members_id_seq OWNER TO postgres;
 GRANT ALL ON SEQUENCE public.team_members_id_seq TO postgres;
+
+-- DROP SEQUENCE public.team_templates_id_seq;
+
+CREATE SEQUENCE public.team_templates_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.team_templates_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.team_templates_id_seq TO postgres;
+
+-- DROP SEQUENCE public.team_output_rules_id_seq;
+
+CREATE SEQUENCE public.team_output_rules_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public.team_output_rules_id_seq OWNER TO postgres;
+GRANT ALL ON SEQUENCE public.team_output_rules_id_seq TO postgres;
 -- public.job_types definition
 
 -- Drop table
@@ -472,6 +502,50 @@ ALTER TABLE public.team_members OWNER TO postgres;
 GRANT ALL ON TABLE public.team_members TO postgres;
 
 
+-- public.team_templates definition
+
+-- DROP TABLE public.team_templates;
+
+CREATE TABLE public.team_templates (
+	id serial4 NOT NULL,
+	team_id int4 NOT NULL,
+	template_id int4 NOT NULL,
+	created_at timestamp DEFAULT now() NULL,
+	CONSTRAINT team_templates_pkey PRIMARY KEY (id),
+	CONSTRAINT team_templates_team_id_template_id_key UNIQUE (team_id, template_id),
+	CONSTRAINT team_templates_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.teams(id) ON DELETE CASCADE,
+	CONSTRAINT team_templates_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.templates(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_team_templates_team_id ON public.team_templates USING btree (team_id);
+CREATE INDEX idx_team_templates_template_id ON public.team_templates USING btree (template_id);
+
+-- Permissions
+
+ALTER TABLE public.team_templates OWNER TO postgres;
+GRANT ALL ON TABLE public.team_templates TO postgres;
+
+
+-- public.team_output_rules definition
+
+-- DROP TABLE public.team_output_rules;
+
+CREATE TABLE public.team_output_rules (
+	id serial4 NOT NULL,
+	team_id int4 NOT NULL,
+	output_rule_id int4 NOT NULL,
+	created_at timestamp DEFAULT now() NULL,
+	CONSTRAINT team_output_rules_pkey PRIMARY KEY (id),
+	CONSTRAINT team_output_rules_team_id_output_rule_id_key UNIQUE (team_id, output_rule_id),
+	CONSTRAINT team_output_rules_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.teams(id) ON DELETE CASCADE,
+	CONSTRAINT team_output_rules_output_rule_id_fkey FOREIGN KEY (output_rule_id) REFERENCES public.output_rules(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_team_output_rules_team_id ON public.team_output_rules USING btree (team_id);
+CREATE INDEX idx_team_output_rules_output_rule_id ON public.team_output_rules USING btree (output_rule_id);
+
+-- Permissions
+
+ALTER TABLE public.team_output_rules OWNER TO postgres;
+GRANT ALL ON TABLE public.team_output_rules TO postgres;
 
 
 -- Permissions

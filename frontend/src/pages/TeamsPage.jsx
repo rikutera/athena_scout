@@ -5,8 +5,13 @@ import '../styles/TeamsPage.css';
 const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
   const [users, setUsers] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [outputRules, setOutputRules] = useState([]);
+  const [teamTemplates, setTeamTemplates] = useState([]);
+  const [teamOutputRules, setTeamOutputRules] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [formData, setFormData] = useState({
@@ -19,6 +24,8 @@ const TeamsPage = () => {
     document.title = 'チーム管理 - Athena Scout';
     fetchTeams();
     fetchUsers();
+    fetchTemplates();
+    fetchOutputRules();
   }, []);
 
   const fetchTeams = async () => {
@@ -37,6 +44,38 @@ const TeamsPage = () => {
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await apiClient.get('/api/admin/templates');
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const fetchOutputRules = async () => {
+    try {
+      const response = await apiClient.get('/api/admin/output-rules');
+      setOutputRules(response.data);
+    } catch (error) {
+      console.error('Error fetching output rules:', error);
+    }
+  };
+
+  const fetchTeamAssignments = async (teamId) => {
+    try {
+      const [templatesRes, rulesRes] = await Promise.all([
+        apiClient.get(`/api/admin/teams/${teamId}/templates`),
+        apiClient.get(`/api/admin/teams/${teamId}/output-rules`)
+      ]);
+      setTeamTemplates(templatesRes.data);
+      setTeamOutputRules(rulesRes.data);
+    } catch (error) {
+      console.error('Error fetching team assignments:', error);
+      setError('割り当ての取得に失敗しました');
     }
   };
 
@@ -154,6 +193,81 @@ const TeamsPage = () => {
     return users.filter(u => !memberIds.includes(u.id));
   };
 
+  // 割り当て管理モーダルを開く
+  const handleViewAssignments = async (team) => {
+    setSelectedTeam(team);
+    await fetchTeamAssignments(team.id);
+    setShowAssignmentsModal(true);
+  };
+
+  // テンプレートを割り当て
+  const handleAssignTemplate = async (templateId) => {
+    try {
+      await apiClient.post(`/api/admin/teams/${selectedTeam.id}/templates`, {
+        templateId: parseInt(templateId)
+      });
+      await fetchTeamAssignments(selectedTeam.id);
+    } catch (error) {
+      console.error('Error assigning template:', error);
+      alert(error.response?.data?.error || 'テンプレートの割り当てに失敗しました');
+    }
+  };
+
+  // テンプレートの割り当てを解除
+  const handleUnassignTemplate = async (templateId) => {
+    if (!window.confirm('このテンプレートの割り当てを解除しますか？')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/admin/teams/${selectedTeam.id}/templates/${templateId}`);
+      await fetchTeamAssignments(selectedTeam.id);
+    } catch (error) {
+      console.error('Error unassigning template:', error);
+      alert('テンプレートの割り当て解除に失敗しました');
+    }
+  };
+
+  // 出力ルールを割り当て
+  const handleAssignOutputRule = async (ruleId) => {
+    try {
+      await apiClient.post(`/api/admin/teams/${selectedTeam.id}/output-rules`, {
+        outputRuleId: parseInt(ruleId)
+      });
+      await fetchTeamAssignments(selectedTeam.id);
+    } catch (error) {
+      console.error('Error assigning output rule:', error);
+      alert(error.response?.data?.error || '出力ルールの割り当てに失敗しました');
+    }
+  };
+
+  // 出力ルールの割り当てを解除
+  const handleUnassignOutputRule = async (ruleId) => {
+    if (!window.confirm('この出力ルールの割り当てを解除しますか？')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/admin/teams/${selectedTeam.id}/output-rules/${ruleId}`);
+      await fetchTeamAssignments(selectedTeam.id);
+    } catch (error) {
+      console.error('Error unassigning output rule:', error);
+      alert('出力ルールの割り当て解除に失敗しました');
+    }
+  };
+
+  // 割り当て可能なテンプレート一覧を取得
+  const getAvailableTemplates = () => {
+    const assignedIds = teamTemplates.map(t => t.id);
+    return templates.filter(t => !assignedIds.includes(t.id));
+  };
+
+  // 割り当て可能な出力ルール一覧を取得
+  const getAvailableOutputRules = () => {
+    const assignedIds = teamOutputRules.map(r => r.id);
+    return outputRules.filter(r => !assignedIds.includes(r.id));
+  };
+
   return (
     <div className="teams-page">
       <div className="teams-header">
@@ -191,6 +305,12 @@ const TeamsPage = () => {
                     onClick={() => handleViewMembers(team)}
                   >
                     メンバー管理
+                  </button>
+                  <button
+                    className="btn-view-assignments"
+                    onClick={() => handleViewAssignments(team)}
+                  >
+                    割り当て管理
                   </button>
                   <button
                     className="btn-edit"
@@ -325,6 +445,118 @@ const TeamsPage = () => {
 
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setShowMembersModal(false)}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 割り当て管理モーダル */}
+      {showAssignmentsModal && selectedTeam && (
+        <div className="modal-overlay" onClick={() => setShowAssignmentsModal(false)}>
+          <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedTeam.team_name} - 割り当て管理</h2>
+              <button className="btn-close" onClick={() => setShowAssignmentsModal(false)}>
+                ×
+              </button>
+            </div>
+
+            <div className="assignments-container">
+              {/* テンプレート割り当て */}
+              <div className="assignment-section">
+                <h3>テンプレート ({teamTemplates.length}件)</h3>
+                {teamTemplates.length === 0 ? (
+                  <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+                    割り当てられたテンプレートがありません
+                  </p>
+                ) : (
+                  <div className="assigned-items-list">
+                    {teamTemplates.map(template => (
+                      <div key={template.id} className="assigned-item">
+                        <div className="item-info">
+                          <span className="item-name">{template.template_name}</span>
+                        </div>
+                        <button
+                          className="btn-remove-item"
+                          onClick={() => handleUnassignTemplate(template.id)}
+                        >
+                          解除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="add-assignment-form">
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleAssignTemplate(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                  >
+                    <option value="">テンプレートを追加...</option>
+                    {getAvailableTemplates().map(template => (
+                      <option key={template.id} value={template.id}>
+                        {template.template_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 出力ルール割り当て */}
+              <div className="assignment-section">
+                <h3>出力ルール ({teamOutputRules.length}件)</h3>
+                {teamOutputRules.length === 0 ? (
+                  <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+                    割り当てられた出力ルールがありません
+                  </p>
+                ) : (
+                  <div className="assigned-items-list">
+                    {teamOutputRules.map(rule => (
+                      <div key={rule.id} className="assigned-item">
+                        <div className="item-info">
+                          <span className="item-name">{rule.rule_name}</span>
+                        </div>
+                        <button
+                          className="btn-remove-item"
+                          onClick={() => handleUnassignOutputRule(rule.id)}
+                        >
+                          解除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="add-assignment-form">
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleAssignOutputRule(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                  >
+                    <option value="">出力ルールを追加...</option>
+                    {getAvailableOutputRules().map(rule => (
+                      <option key={rule.id} value={rule.id}>
+                        {rule.rule_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowAssignmentsModal(false)}>
                 閉じる
               </button>
             </div>

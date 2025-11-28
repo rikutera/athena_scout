@@ -82,7 +82,7 @@
   gap: 10px;
 }
 
-.btn-edit, .btn-delete, .btn-view-members {
+.btn-edit, .btn-delete, .btn-view-members, .btn-view-assignments {
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
@@ -115,6 +115,15 @@
 
 .btn-view-members:hover {
   background-color: #e68900;
+}
+
+.btn-view-assignments {
+  background-color: #9C27B0;
+  color: white;
+}
+
+.btn-view-assignments:hover {
+  background-color: #7B1FA2;
 }
 
 /* モーダル */
@@ -350,4 +359,91 @@
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 16px;
+}
+
+/* 割り当て管理モーダル */
+.modal-wide {
+  max-width: 800px;
+}
+
+.assignments-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.assignment-section {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.assignment-section h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.assigned-items-list {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.assigned-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.assigned-item:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.btn-remove-item {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-remove-item:hover {
+  background-color: #da190b;
+}
+
+.add-assignment-form {
+  margin-top: 12px;
+}
+
+.add-assignment-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .assignments-container {
+    grid-template-columns: 1fr;
+  }
 }

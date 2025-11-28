@@ -1681,6 +1681,186 @@ app.delete('/api/admin/teams/:teamId/members/:userId', authenticateToken, requir
   }
 });
 
+// ============================================
+// チームテンプレート割り当て API
+// ============================================
+
+// チームに割り当てられたテンプレート一覧を取得
+app.get('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    const result = await pool.query(
+      `SELECT t.id, t.template_name, t.template_content, t.created_at
+       FROM templates t
+       INNER JOIN team_templates tt ON t.id = tt.template_id
+       WHERE tt.team_id = $1
+       ORDER BY t.template_name`,
+      [teamId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching team templates:', error);
+    res.status(500).json({ error: 'テンプレートの取得に失敗しました' });
+  }
+});
+
+// チームにテンプレートを割り当て
+app.post('/api/admin/teams/:teamId/templates', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { templateId } = req.body;
+
+    if (!templateId) {
+      return res.status(400).json({ error: 'テンプレートIDが必要です' });
+    }
+
+    // テンプレートが存在するか確認
+    const templateExists = await pool.query('SELECT 1 FROM templates WHERE id = $1', [templateId]);
+    if (templateExists.rows.length === 0) {
+      return res.status(404).json({ error: 'テンプレートが見つかりません' });
+    }
+
+    // チームが存在するか確認
+    const teamExists = await pool.query('SELECT 1 FROM teams WHERE id = $1', [teamId]);
+    if (teamExists.rows.length === 0) {
+      return res.status(404).json({ error: 'チームが見つかりません' });
+    }
+
+    // 重複チェック
+    const duplicate = await pool.query(
+      'SELECT 1 FROM team_templates WHERE team_id = $1 AND template_id = $2',
+      [teamId, templateId]
+    );
+
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({ error: 'このテンプレートは既に割り当てられています' });
+    }
+
+    await pool.query(
+      'INSERT INTO team_templates (team_id, template_id) VALUES ($1, $2)',
+      [teamId, templateId]
+    );
+
+    res.status(201).json({ success: true, message: 'テンプレートを割り当てました' });
+  } catch (error) {
+    console.error('Error assigning template to team:', error);
+    res.status(500).json({ error: 'テンプレートの割り当てに失敗しました' });
+  }
+});
+
+// チームからテンプレートの割り当てを解除
+app.delete('/api/admin/teams/:teamId/templates/:templateId', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId, templateId } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM team_templates WHERE team_id = $1 AND template_id = $2 RETURNING *',
+      [teamId, templateId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'テンプレート割り当てが見つかりません' });
+    }
+
+    res.json({ success: true, message: 'テンプレートの割り当てを解除しました' });
+  } catch (error) {
+    console.error('Error removing template from team:', error);
+    res.status(500).json({ error: 'テンプレートの割り当て解除に失敗しました' });
+  }
+});
+
+// ============================================
+// チーム出力ルール割り当て API
+// ============================================
+
+// チームに割り当てられた出力ルール一覧を取得
+app.get('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    const result = await pool.query(
+      `SELECT o.id, o.rule_name, o.rule_content, o.created_at
+       FROM output_rules o
+       INNER JOIN team_output_rules tor ON o.id = tor.output_rule_id
+       WHERE tor.team_id = $1
+       ORDER BY o.rule_name`,
+      [teamId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching team output rules:', error);
+    res.status(500).json({ error: '出力ルールの取得に失敗しました' });
+  }
+});
+
+// チームに出力ルールを割り当て
+app.post('/api/admin/teams/:teamId/output-rules', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { outputRuleId } = req.body;
+
+    if (!outputRuleId) {
+      return res.status(400).json({ error: '出力ルールIDが必要です' });
+    }
+
+    // 出力ルールが存在するか確認
+    const ruleExists = await pool.query('SELECT 1 FROM output_rules WHERE id = $1', [outputRuleId]);
+    if (ruleExists.rows.length === 0) {
+      return res.status(404).json({ error: '出力ルールが見つかりません' });
+    }
+
+    // チームが存在するか確認
+    const teamExists = await pool.query('SELECT 1 FROM teams WHERE id = $1', [teamId]);
+    if (teamExists.rows.length === 0) {
+      return res.status(404).json({ error: 'チームが見つかりません' });
+    }
+
+    // 重複チェック
+    const duplicate = await pool.query(
+      'SELECT 1 FROM team_output_rules WHERE team_id = $1 AND output_rule_id = $2',
+      [teamId, outputRuleId]
+    );
+
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({ error: 'この出力ルールは既に割り当てられています' });
+    }
+
+    await pool.query(
+      'INSERT INTO team_output_rules (team_id, output_rule_id) VALUES ($1, $2)',
+      [teamId, outputRuleId]
+    );
+
+    res.status(201).json({ success: true, message: '出力ルールを割り当てました' });
+  } catch (error) {
+    console.error('Error assigning output rule to team:', error);
+    res.status(500).json({ error: '出力ルールの割り当てに失敗しました' });
+  }
+});
+
+// チームから出力ルールの割り当てを解除
+app.delete('/api/admin/teams/:teamId/output-rules/:outputRuleId', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { teamId, outputRuleId } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM team_output_rules WHERE team_id = $1 AND output_rule_id = $2 RETURNING *',
+      [teamId, outputRuleId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '出力ルール割り当てが見つかりません' });
+    }
+
+    res.json({ success: true, message: '出力ルールの割り当てを解除しました' });
+  } catch (error) {
+    console.error('Error removing output rule from team:', error);
+    res.status(500).json({ error: '出力ルールの割り当て解除に失敗しました' });
+  }
+});
+
 // エラーハンドリング
 app.use((err, req, res, next) => {
   console.error(err);
