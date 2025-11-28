@@ -84,21 +84,17 @@ function App() {
                     テンプレート
                   </Link>
                 </li>
+                <li className="nav-item">
+                  <Link to="/teams" className="nav-link">
+                    チーム
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/users" className="nav-link">
+                    ユーザー
+                  </Link>
+                </li>
               </>
-            )}
-            {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
-              <li className="nav-item">
-                <Link to="/teams" className="nav-link">
-                  チーム
-                </Link>
-              </li>
-            )}
-            {(user?.user_role === 'admin' || user?.user_role === 'manager') && (
-              <li className="nav-item">
-                <Link to="/users" className="nav-link">
-                  ユーザー
-                </Link>
-              </li>
             )}
             <li className="nav-item">
               <Link to="/howto" className="nav-link">
