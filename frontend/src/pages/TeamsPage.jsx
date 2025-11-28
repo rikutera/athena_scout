@@ -49,7 +49,7 @@ const TeamsPage = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await apiClient.get('/api/admin/templates');
+      const response = await apiClient.get('/api/templates');
       setTemplates(response.data);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -58,7 +58,7 @@ const TeamsPage = () => {
 
   const fetchOutputRules = async () => {
     try {
-      const response = await apiClient.get('/api/admin/output-rules');
+      const response = await apiClient.get('/api/output-rules');
       setOutputRules(response.data);
     } catch (error) {
       console.error('Error fetching output rules:', error);
