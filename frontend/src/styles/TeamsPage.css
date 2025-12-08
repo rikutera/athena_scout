@@ -66,6 +66,38 @@
   background-color: #f8f9fa;
 }
 
+/* カラム幅の設定 */
+.teams-table th:nth-child(1),
+.teams-table td:nth-child(1) {
+  width: 60px;
+}
+
+.teams-table th:nth-child(2),
+.teams-table td:nth-child(2) {
+  width: 150px;
+}
+
+.teams-table th:nth-child(3),
+.teams-table td:nth-child(3) {
+  width: auto;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teams-table th:nth-child(4),
+.teams-table td:nth-child(4) {
+  width: 100px;
+}
+
+.teams-table th:nth-child(5),
+.teams-table td:nth-child(5) {
+  width: 280px;
+  min-width: 280px;
+  white-space: nowrap;
+}
+
 .btn-logs-small,
 .btn-edit-small,
 .btn-delete-small {
