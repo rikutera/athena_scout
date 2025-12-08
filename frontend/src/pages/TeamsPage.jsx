@@ -270,44 +270,39 @@ const TeamsPage = () => {
 
   return (
     <div className="teams-page">
-      <div className="teams-header">
+      <div className="page-header">
         <h1>チーム管理</h1>
-        <button className="btn-add-team" onClick={handleAddTeam}>
-          新規チームを追加
-        </button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
+      <button className="btn-add" onClick={handleAddTeam}>
+        + 新規追加
+      </button>
+
       <div className="teams-list">
+        <h2>登録済みチーム</h2>
         {teams.length === 0 ? (
-          <div className="empty-state">
-            <p>チームがありません</p>
-            <p>「新規チームを追加」ボタンからチームを作成してください</p>
-          </div>
+          <p>チームがまだ登録されていません</p>
         ) : (
-          teams.map(team => (
-            <div key={team.id} className="team-card">
-              <div className="team-card-header">
-                <div>
-                  <h3 className="team-name">{team.team_name}</h3>
-                  {team.description && (
-                    <p className="team-description">{team.description}</p>
-                  )}
-                  <div className="team-stats">
-                    <span>メンバー: {team.member_count}人</span>
-                    <span>責任者: {team.manager_count}人</span>
-                  </div>
+          <div className="teams-grid">
+            {teams.map(team => (
+              <div key={team.id} className="team-card">
+                <div className="team-header">
+                  <h3>{team.team_name}</h3>
                 </div>
+                {team.description && (
+                  <p className="team-description">{team.description}</p>
+                )}
                 <div className="team-actions">
                   <button
-                    className="btn-view-members"
+                    className="btn-secondary"
                     onClick={() => handleViewMembers(team)}
                   >
                     メンバー管理
                   </button>
                   <button
-                    className="btn-view-assignments"
+                    className="btn-secondary"
                     onClick={() => handleViewAssignments(team)}
                   >
                     割り当て管理
@@ -326,8 +321,8 @@ const TeamsPage = () => {
                   </button>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
@@ -400,7 +395,7 @@ const TeamsPage = () => {
                         <span className="member-name">{member.username}</span>
                         <span className="member-role">({member.user_role})</span>
                         {member.is_manager && (
-                          <span className="manager-badge">責任者</span>
+                          <span className="manager-badge">チーム長</span>
                         )}
                       </div>
                       <div className="member-actions">
@@ -408,7 +403,7 @@ const TeamsPage = () => {
                           className="btn-toggle-manager"
                           onClick={() => handleToggleManager(member.id, member.is_manager)}
                         >
-                          {member.is_manager ? '責任者解除' : '責任者に設定'}
+                          {member.is_manager ? 'チーム長解除' : 'チーム長設定'}
                         </button>
                         <button
                           className="btn-remove-member"
