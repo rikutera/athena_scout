@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
 import '../styles/TeamsPage.css';
 
@@ -272,6 +273,9 @@ const TeamsPage = () => {
     <div className="teams-page">
       <div className="page-header">
         <h1>チーム管理</h1>
+        <Link to="/" className="btn-back">
+          ← オファーメッセージ生成に戻る
+        </Link>
       </div>
 
       {error && <div className="error-message">{error}</div>}
