@@ -219,7 +219,7 @@ export default function UserManagementPage() {
       <div className="page-header">
         <h1>ユーザー管理</h1>
         <Link to="/" className="btn-back">
-          ← ホームに戻る
+          ← オファーメッセージ生成に戻る
         </Link>
       </div>
 
