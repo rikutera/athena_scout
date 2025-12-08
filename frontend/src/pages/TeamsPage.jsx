@@ -276,54 +276,68 @@ const TeamsPage = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      <button className="btn-add" onClick={handleAddTeam}>
-        + 新規追加
-      </button>
+      <div className="action-bar">
+        <button className="btn-add" onClick={handleAddTeam}>
+          + 新規チーム追加
+        </button>
+      </div>
 
-      <div className="teams-list">
-        <h2>登録済みチーム</h2>
-        {teams.length === 0 ? (
-          <p>チームがまだ登録されていません</p>
-        ) : (
-          <div className="teams-grid">
-            {teams.map(team => (
-              <div key={team.id} className="team-card">
-                <div className="team-header">
-                  <h3>{team.team_name}</h3>
-                </div>
-                {team.description && (
-                  <p className="team-description">{team.description}</p>
-                )}
-                <div className="team-actions">
-                  <button
-                    className="btn-secondary"
-                    onClick={() => handleViewMembers(team)}
-                  >
-                    メンバー管理
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    onClick={() => handleViewAssignments(team)}
-                  >
-                    割り当て管理
-                  </button>
-                  <button
-                    className="btn-edit"
-                    onClick={() => handleEditTeam(team)}
-                  >
-                    編集
-                  </button>
-                  <button
-                    className="btn-delete"
-                    onClick={() => handleDeleteTeam(team.id)}
-                  >
-                    削除
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="teams-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>チーム名</th>
+              <th>説明</th>
+              <th>メンバー数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>
+                  チームがまだ登録されていません
+                </td>
+              </tr>
+            ) : (
+              teams.map(team => (
+                <tr key={team.id}>
+                  <td>{team.id}</td>
+                  <td>{team.team_name}</td>
+                  <td>{team.description || '-'}</td>
+                  <td>{team.member_count || 0}人</td>
+                  <td>
+                    <button
+                      className="btn-logs-small"
+                      onClick={() => handleViewMembers(team)}
+                    >
+                      メンバー
+                    </button>
+                    <button
+                      className="btn-logs-small"
+                      onClick={() => handleViewAssignments(team)}
+                    >
+                      割り当て
+                    </button>
+                    <button
+                      className="btn-edit-small"
+                      onClick={() => handleEditTeam(team)}
+                    >
+                      編集
+                    </button>
+                    <button
+                      className="btn-delete-small"
+                      onClick={() => handleDeleteTeam(team.id)}
+                    >
+                      削除
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* チーム編集モーダル */}

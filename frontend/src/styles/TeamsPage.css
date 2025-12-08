@@ -1,9 +1,7 @@
 .teams-page {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 30px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  padding: 20px;
 }
 
 .page-header {
@@ -11,147 +9,110 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #007bff;
 }
 
 .page-header h1 {
+  font-size: 28px;
+  color: #2c3e50;
   margin: 0;
-  color: #333;
+}
+
+.action-bar {
+  margin-bottom: 20px;
 }
 
 .btn-add {
-  margin-bottom: 20px;
-  padding: 12px 20px;
-  background-color: #28a745;
+  padding: 12px 24px;
+  background-color: #3498db;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1em;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
+  font-size: 16px;
+  transition: background-color 0.3s;
 }
 
 .btn-add:hover {
-  background-color: #218838;
+  background-color: #2980b9;
 }
 
-.teams-list {
-  background-color: #f9f9f9;
-  padding: 20px;
+.teams-table {
+  background: white;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
 }
 
-.teams-list h2 {
-  margin-top: 0;
-  color: #333;
+.teams-table table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.teams-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 20px;
-  margin-top: 15px;
+.teams-table th,
+.teams-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ecf0f1;
+  color: #2c3e50;
 }
 
-.team-card {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.3s ease;
-}
-
-.team-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.team-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.team-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 1.1em;
-  flex: 1;
-}
-
-.team-description {
-  margin: 8px 0;
-  color: #666;
-  font-size: 0.9em;
-  font-weight: 500;
-}
-
-.team-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.btn-secondary {
-  flex: 1;
-  min-width: calc(50% - 4px);
-  padding: 8px 12px;
-  background-color: #6c757d;
+.teams-table th {
+  background-color: #34495e;
   color: white;
+  font-weight: 600;
+}
+
+.teams-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-logs-small,
+.btn-edit-small,
+.btn-delete-small {
+  padding: 6px 12px;
+  margin-right: 5px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
+  font-size: 14px;
+  transition: all 0.3s;
 }
 
-.btn-secondary:hover {
-  background-color: #5a6268;
+.btn-logs-small {
+  background-color: #17a2b8;
+  color: white;
 }
 
-.teams-page .btn-edit {
-  flex: 1;
-  min-width: calc(50% - 4px);
-  padding: 8px 12px;
+.btn-logs-small:hover {
+  background-color: #138496;
+}
+
+.btn-edit-small {
   background-color: #ffc107;
   color: #333;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
 }
 
-.teams-page .btn-edit:hover {
+.btn-edit-small:hover {
   background-color: #e0a800;
 }
 
-.btn-delete {
-  flex: 1;
-  min-width: calc(50% - 4px);
-  padding: 8px 12px;
+.btn-delete-small {
   background-color: #dc3545;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
 }
 
-.btn-delete:hover {
+.btn-delete-small:hover {
   background-color: #c82333;
+}
+
+.error-message {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-weight: 500;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 /* モーダル */
@@ -191,7 +152,8 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #333;
+  color: #2c3e50;
+  font-size: 24px;
 }
 
 .btn-close {
@@ -217,7 +179,7 @@
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: #333;
+  color: #2c3e50;
 }
 
 .form-group input,
@@ -227,7 +189,7 @@
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 1em;
+  font-size: 14px;
   box-sizing: border-box;
 }
 
@@ -240,8 +202,8 @@
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
 .modal-actions {
@@ -253,32 +215,32 @@
 
 .btn-cancel {
   padding: 10px 20px;
-  background-color: #dc3545;
+  background-color: #95a5a6;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .btn-cancel:hover {
-  background-color: #c82333;
+  background-color: #7f8c8d;
 }
 
 .btn-save {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #3498db;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .btn-save:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
 }
 
 /* メンバー管理モーダル */
@@ -288,7 +250,8 @@
 
 .members-section h3 {
   margin-bottom: 12px;
-  color: #333;
+  color: #2c3e50;
+  font-size: 18px;
 }
 
 .members-list {
@@ -296,6 +259,7 @@
   border-radius: 4px;
   max-height: 300px;
   overflow-y: auto;
+  background: white;
 }
 
 .member-item {
@@ -303,7 +267,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #ecf0f1;
 }
 
 .member-item:last-child {
@@ -316,17 +280,17 @@
 
 .member-name {
   font-weight: bold;
-  color: #333;
+  color: #2c3e50;
 }
 
 .member-role {
   font-size: 12px;
-  color: #666;
+  color: #7f8c8d;
   margin-left: 8px;
 }
 
 .manager-badge {
-  background-color: #28a745;
+  background-color: #27ae60;
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -345,14 +309,14 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  background-color: #007bff;
+  background-color: #3498db;
   color: white;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .btn-toggle-manager:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
 }
 
 .btn-remove-member {
@@ -361,14 +325,14 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  background-color: #dc3545;
+  background-color: #e74c3c;
   color: white;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .btn-remove-member:hover {
-  background-color: #c82333;
+  background-color: #c0392b;
 }
 
 .add-member-form {
@@ -379,15 +343,6 @@
 
 .add-member-form select {
   flex: 1;
-}
-
-.error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  border: 1px solid #f5c6cb;
 }
 
 /* 割り当て管理モーダル */
@@ -402,17 +357,17 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 16px;
-  background-color: #f9f9f9;
+  background-color: #f8f9fa;
 }
 
 .assignment-section h3 {
   margin: 0 0 16px 0;
-  color: #333;
+  color: #2c3e50;
   font-size: 16px;
 }
 
 .assigned-items-list {
-  border: 1px solid #e0e0e0;
+  border: 1px solid #ecf0f1;
   border-radius: 4px;
   max-height: 300px;
   overflow-y: auto;
@@ -425,7 +380,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #ecf0f1;
 }
 
 .assigned-item:last-child {
@@ -438,7 +393,7 @@
 
 .item-name {
   font-weight: 500;
-  color: #333;
+  color: #2c3e50;
   font-size: 14px;
 }
 
@@ -448,14 +403,14 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  background-color: #dc3545;
+  background-color: #e74c3c;
   color: white;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .btn-remove-item:hover {
-  background-color: #c82333;
+  background-color: #c0392b;
 }
 
 .add-assignment-form {
@@ -472,10 +427,6 @@
 }
 
 @media (max-width: 768px) {
-  .teams-grid {
-    grid-template-columns: 1fr;
-  }
-
   .assignments-container {
     grid-template-columns: 1fr;
   }
@@ -486,13 +437,14 @@
     gap: 15px;
   }
 
-  .team-actions {
-    flex-direction: column;
+  .teams-table {
+    overflow-x: auto;
   }
 
-  .btn-secondary,
-  .teams-page .btn-edit,
-  .btn-delete {
-    min-width: 100%;
+  .btn-logs-small,
+  .btn-edit-small,
+  .btn-delete-small {
+    font-size: 12px;
+    padding: 4px 8px;
   }
 }
