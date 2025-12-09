@@ -401,7 +401,10 @@ export default function RecruitmentToolForm() {
       {/* 生成結果 */}
       {generatedComment && (
         <section className="generated-result">
-          <h2>生成されたコメント</h2>
+          <div className="result-header">
+            <h2>生成されたコメント</h2>
+            <span className="character-count">{generatedComment.length}文字</span>
+          </div>
           <div className="result-box">
             <p>{generatedComment}</p>
             <button onClick={handleCopyComment} className="btn-copy">
