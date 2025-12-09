@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 import apiClient from '../utils/apiClient';
 import '../styles/TeamsPage.css';
 
 const TeamsPage = () => {
+  const { user: currentUser } = useUser();
+  const isAdmin = currentUser?.user_role === 'admin';
+
   const [teams, setTeams] = useState([]);
   const [users, setUsers] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -416,44 +420,48 @@ const TeamsPage = () => {
                           <span className="manager-badge">チーム長</span>
                         )}
                       </div>
-                      <div className="member-actions">
-                        <button
-                          className="btn-toggle-manager"
-                          onClick={() => handleToggleManager(member.id, member.is_manager)}
-                        >
-                          {member.is_manager ? 'チーム長解除' : 'チーム長設定'}
-                        </button>
-                        <button
-                          className="btn-remove-member"
-                          onClick={() => handleRemoveMember(member.id)}
-                        >
-                          削除
-                        </button>
-                      </div>
+                      {isAdmin && (
+                        <div className="member-actions">
+                          <button
+                            className="btn-toggle-manager"
+                            onClick={() => handleToggleManager(member.id, member.is_manager)}
+                          >
+                            {member.is_manager ? 'チーム長解除' : 'チーム長設定'}
+                          </button>
+                          <button
+                            className="btn-remove-member"
+                            onClick={() => handleRemoveMember(member.id)}
+                          >
+                            削除
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="add-member-form">
-                <select
-                  id="new-member-select"
-                  defaultValue=""
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleAddMember(e.target.value);
-                      e.target.value = '';
-                    }
-                  }}
-                >
-                  <option value="">メンバーを追加...</option>
-                  {getAvailableUsers().map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.username} ({user.user_role})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {isAdmin && (
+                <div className="add-member-form">
+                  <select
+                    id="new-member-select"
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleAddMember(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                  >
+                    <option value="">メンバーを追加...</option>
+                    {getAvailableUsers().map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.username} ({user.user_role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="modal-actions">
