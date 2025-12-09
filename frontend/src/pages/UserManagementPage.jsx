@@ -31,6 +31,11 @@ export default function UserManagementPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [logsLoading, setLogsLoading] = useState(false);
 
+  // ページネーション用の状態
+  const [activityPage, setActivityPage] = useState(1);
+  const [generationPage, setGenerationPage] = useState(1);
+  const itemsPerPage = 40;
+
   // 生成履歴詳細モーダル
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
@@ -198,6 +203,8 @@ export default function UserManagementPage() {
     setLoginLogs([]);
     setActivityLogs([]);
     setGenerationHistory([]);
+    setActivityPage(1);
+    setGenerationPage(1);
   };
 
   const handleShowDetail = (history) => {
@@ -446,22 +453,47 @@ export default function UserManagementPage() {
                       {activityLogs.length === 0 ? (
                         <p>利用履歴がありません</p>
                       ) : (
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>日時</th>
-                              <th>アクション</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {activityLogs.map((log) => (
-                              <tr key={log.id}>
-                                <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
-                                <td>{log.action}</td>
+                        <>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>日時</th>
+                                <th>アクション</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {activityLogs
+                                .slice((activityPage - 1) * itemsPerPage, activityPage * itemsPerPage)
+                                .map((log) => (
+                                  <tr key={log.id}>
+                                    <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
+                                    <td>{log.action}</td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                          {activityLogs.length > itemsPerPage && (
+                            <div className="pagination">
+                              <button
+                                onClick={() => setActivityPage(prev => Math.max(1, prev - 1))}
+                                disabled={activityPage === 1}
+                                className="pagination-btn"
+                              >
+                                前へ
+                              </button>
+                              <span className="pagination-info">
+                                {activityPage} / {Math.ceil(activityLogs.length / itemsPerPage)}
+                              </span>
+                              <button
+                                onClick={() => setActivityPage(prev => Math.min(Math.ceil(activityLogs.length / itemsPerPage), prev + 1))}
+                                disabled={activityPage >= Math.ceil(activityLogs.length / itemsPerPage)}
+                                className="pagination-btn"
+                              >
+                                次へ
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -471,36 +503,61 @@ export default function UserManagementPage() {
                       {generationHistory.length === 0 ? (
                         <p>生成履歴がありません</p>
                       ) : (
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>生成日時</th>
-                              <th>テンプレート名</th>
-                              <th>生成メッセージ（プレビュー）</th>
-                              <th>操作</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {generationHistory.map((history) => (
-                              <tr key={history.id}>
-                                <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
-                                <td>{history.template_name || '未設定'}</td>
-                                <td className="message-preview">
-                                  {history.generated_comment.substring(0, 50)}
-                                  {history.generated_comment.length > 50 && '...'}
-                                </td>
-                                <td>
-                                  <button
-                                    onClick={() => handleShowDetail(history)}
-                                    className="btn-view-detail-small"
-                                  >
-                                    詳細
-                                  </button>
-                                </td>
+                        <>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>生成日時</th>
+                                <th>テンプレート名</th>
+                                <th>生成メッセージ（プレビュー）</th>
+                                <th>操作</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {generationHistory
+                                .slice((generationPage - 1) * itemsPerPage, generationPage * itemsPerPage)
+                                .map((history) => (
+                                  <tr key={history.id}>
+                                    <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
+                                    <td>{history.template_name || '未設定'}</td>
+                                    <td className="message-preview">
+                                      {history.generated_comment.substring(0, 50)}
+                                      {history.generated_comment.length > 50 && '...'}
+                                    </td>
+                                    <td>
+                                      <button
+                                        onClick={() => handleShowDetail(history)}
+                                        className="btn-view-detail-small"
+                                      >
+                                        詳細
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                          {generationHistory.length > itemsPerPage && (
+                            <div className="pagination">
+                              <button
+                                onClick={() => setGenerationPage(prev => Math.max(1, prev - 1))}
+                                disabled={generationPage === 1}
+                                className="pagination-btn"
+                              >
+                                前へ
+                              </button>
+                              <span className="pagination-info">
+                                {generationPage} / {Math.ceil(generationHistory.length / itemsPerPage)}
+                              </span>
+                              <button
+                                onClick={() => setGenerationPage(prev => Math.min(Math.ceil(generationHistory.length / itemsPerPage), prev + 1))}
+                                disabled={generationPage >= Math.ceil(generationHistory.length / itemsPerPage)}
+                                className="pagination-btn"
+                              >
+                                次へ
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
