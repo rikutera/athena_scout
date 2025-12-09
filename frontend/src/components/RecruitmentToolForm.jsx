@@ -33,6 +33,20 @@ export default function RecruitmentToolForm() {
   const [generatedComment, setGeneratedComment] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // 採用カウンター（ローカルストレージに保存）
+  const [counter1, setCounter1] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter1');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [counter2, setCounter2] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter2');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [counter3, setCounter3] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter3');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
   // 初期ロード
   useEffect(() => {
     document.title = 'メッセージ生成 - Athena Scout';
@@ -41,6 +55,19 @@ export default function RecruitmentToolForm() {
     fetchOutputRules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // カウンターをローカルストレージに保存
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter1', String(counter1));
+  }, [counter1]);
+
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter2', String(counter2));
+  }, [counter2]);
+
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter3', String(counter3));
+  }, [counter3]);
 
   // 保存済みテンプレート一覧取得
   const fetchTemplates = async () => {
@@ -227,6 +254,27 @@ export default function RecruitmentToolForm() {
     }
   };
 
+  // カウンター操作
+  const incrementCounter = (counterNum) => {
+    if (counterNum === 1) setCounter1(prev => prev + 1);
+    if (counterNum === 2) setCounter2(prev => prev + 1);
+    if (counterNum === 3) setCounter3(prev => prev + 1);
+  };
+
+  const decrementCounter = (counterNum) => {
+    if (counterNum === 1) setCounter1(prev => Math.max(0, prev - 1));
+    if (counterNum === 2) setCounter2(prev => Math.max(0, prev - 1));
+    if (counterNum === 3) setCounter3(prev => Math.max(0, prev - 1));
+  };
+
+  const clearCounter = (counterNum) => {
+    if (window.confirm('このカウンターをリセットしますか？')) {
+      if (counterNum === 1) setCounter1(0);
+      if (counterNum === 2) setCounter2(0);
+      if (counterNum === 3) setCounter3(0);
+    }
+  };
+
   return (
     <div className="recruitment-tool">
       <h1>メッセージ生成</h1>
@@ -397,6 +445,66 @@ export default function RecruitmentToolForm() {
           {loading ? '生成中...' : 'コメントを生成'}
         </button>
       </div>
+
+      {/* 採用カウンター */}
+      <section className="adoption-counters">
+        <h2>採用メッセージカウンター</h2>
+        <div className="counters-container">
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">カウンター 1</span>
+              <span className="counter-value">{counter1}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(1)} className="btn-counter-minus">
+                -
+              </button>
+              <button onClick={() => incrementCounter(1)} className="btn-counter-plus">
+                +
+              </button>
+              <button onClick={() => clearCounter(1)} className="btn-counter-clear">
+                クリア
+              </button>
+            </div>
+          </div>
+
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">カウンター 2</span>
+              <span className="counter-value">{counter2}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(2)} className="btn-counter-minus">
+                -
+              </button>
+              <button onClick={() => incrementCounter(2)} className="btn-counter-plus">
+                +
+              </button>
+              <button onClick={() => clearCounter(2)} className="btn-counter-clear">
+                クリア
+              </button>
+            </div>
+          </div>
+
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">カウンター 3</span>
+              <span className="counter-value">{counter3}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(3)} className="btn-counter-minus">
+                -
+              </button>
+              <button onClick={() => incrementCounter(3)} className="btn-counter-plus">
+                +
+              </button>
+              <button onClick={() => clearCounter(3)} className="btn-counter-clear">
+                クリア
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 生成結果 */}
       {generatedComment && (
