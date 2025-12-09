@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { buildScoutMessagePrompt } from './prompts/scoutMessagePrompt.js';
 
 const { Pool } = pkg;
 dotenv.config();
@@ -1156,65 +1157,6 @@ app.delete('/api/output-rules/:id', authenticateToken, requireAdminOrManager, lo
 
 // ========== コメント生成 ==========
 
-// プロンプト組立関数（非同期）
-async function buildPrompt(jobType, industry, companyRequirement, offerTemplate, studentProfile, output_rule_id) {
-  try {
-    const ruleResult = await pool.query(
-      'SELECT rule_text FROM output_rules WHERE id = $1',
-      [output_rule_id]
-    );
-
-    if (ruleResult.rows.length === 0) {
-      throw new Error('出力ルールが見つかりません');
-    }
-
-    const outputRuleText = ruleResult.rows[0].rule_text;
-
-    const result = await pool.query(
-      'SELECT name, definition FROM job_types ORDER BY created_at ASC'
-    );
-
-    const jobDefinitions = {};
-    result.rows.forEach(row => {
-      jobDefinitions[row.name] = row.definition;
-    });
-
-    const jobDefinition = jobDefinitions[jobType] || '';
-
-    const jobDefinitionsText = result.rows
-      .map(row => `${row.name}：${row.definition}`)
-      .join('\n');
-
-    const systemPrompt = `あなたは就職活動のための企業からの評価コメント生成アシスタントです。
-以下のルールに厳密に従ってください：
-
-【職種適性の定義】
-${jobDefinitionsText}
-
-【指定職種】
-${jobType}：${jobDefinition}
-
-【出力ルール】
-${outputRuleText}`;
-
-    const userMessage = `
-【職種】${jobType}
-【業種】${industry}
-【企業が望むこと】${companyRequirement}
-【オファー文テンプレート】${offerTemplate}
-
-【学生のプロフィール】
-${studentProfile}
-
-上記の学生のプロフィール情報を基に、指定職種の特性に合致するエピソードを優先的に抽出し、提示した情報を元にテンプレートの*【】内部分のみ*を作成してください。`;
-
-    return { systemPrompt, userMessage };
-  } catch (error) {
-    console.error('Error building prompt:', error);
-    throw error;
-  }
-}
-
 // コメント生成エンドポイント（履歴保存付き）
 app.post('/api/generate', authenticateToken, logActivity('コメント生成'), async (req, res) => {
   try {
@@ -1232,7 +1174,7 @@ app.post('/api/generate', authenticateToken, logActivity('コメント生成'), 
       return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
-    const { systemPrompt, userMessage } = await buildPrompt(
+    const { systemPrompt, userMessage } = await buildScoutMessagePrompt(
       job_type,
       industry,
       company_requirement,
