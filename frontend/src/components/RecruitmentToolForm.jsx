@@ -254,6 +254,63 @@ export default function RecruitmentToolForm() {
     }
   };
 
+  // クリップボードから貼り付け ＋ コメント生成
+  const handlePasteAndGenerate = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setStudentProfile(text);
+
+      // 貼り付け後、コメント生成を実行
+      if (!jobType || !industry || !companyRequirement || !offerTemplate || !text || !outputRuleId) {
+        alert('すべてのフィールドを入力してください');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await apiClient.post('/api/generate', {
+          template_name: templateName || '未設定',
+          job_type: jobType,
+          industry: industry,
+          company_requirement: companyRequirement,
+          offer_template: offerTemplate,
+          student_profile: text,
+          output_rule_id: parseInt(outputRuleId, 10),
+        });
+        setGeneratedComment(response.data.comment);
+        showToast('コメントを生成しました ✓');
+      } catch (error) {
+        console.error('Error generating comment:', error);
+
+        let errorMessage = 'コメント生成に失敗しました';
+
+        if (error.response) {
+          const status = error.response.status;
+          const serverError = error.response.data?.error;
+
+          if (status === 429) {
+            errorMessage = 'APIの利用制限に達しました。しばらく時間をおいてから再度お試しください。';
+          } else if (status === 529) {
+            errorMessage = 'Claude APIが過負荷状態です。しばらく時間をおいてから再度お試しください。';
+          } else if (status >= 500) {
+            errorMessage = `サーバーエラーが発生しました（${status}）\n${serverError || ''}`;
+          } else if (serverError) {
+            errorMessage = `エラー: ${serverError}`;
+          }
+        } else if (error.request) {
+          errorMessage = 'サーバーに接続できませんでした。ネットワーク接続を確認してください。';
+        }
+
+        alert(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error pasting from clipboard:', error);
+      showToast('貼り付けに失敗しました');
+    }
+  };
+
   // カウンター操作
   const incrementCounter = (counterNum) => {
     if (counterNum === 1) setCounter1(prev => prev + 1);
@@ -418,11 +475,12 @@ export default function RecruitmentToolForm() {
           />
           <div className="profile-actions">
             <button
-              onClick={handlePasteProfile}
-              className="btn-paste"
+              onClick={handlePasteAndGenerate}
+              className="btn-paste-generate"
               type="button"
+              disabled={loading}
             >
-              貼り付け
+              {loading ? '生成中...' : '貼り付け ＋ コメント生成'}
             </button>
             <button
               onClick={handleClearProfile}
@@ -442,7 +500,7 @@ export default function RecruitmentToolForm() {
           disabled={loading}
           className="btn-generate"
         >
-          {loading ? '生成中...' : 'コメントを生成'}
+          {loading ? '生成中...' : 'コメントを再生成'}
         </button>
       </div>
 

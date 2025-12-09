@@ -172,7 +172,7 @@
   margin-top: 10px;
 }
 
-.btn-paste,
+.btn-paste-generate,
 .btn-clear {
   flex: 1;
   padding: 10px 20px;
@@ -184,13 +184,18 @@
   font-weight: 500;
 }
 
-.btn-paste {
+.btn-paste-generate {
   background-color: #4CAF50;
   color: white;
 }
 
-.btn-paste:hover {
+.btn-paste-generate:hover:not(:disabled) {
   background-color: #45a049;
+}
+
+.btn-paste-generate:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .btn-clear {
@@ -202,7 +207,7 @@
   background-color: #da190b;
 }
 
-.btn-paste:active,
+.btn-paste-generate:active:not(:disabled),
 .btn-clear:active {
   transform: scale(0.98);
 }
