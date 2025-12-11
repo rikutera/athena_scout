@@ -504,65 +504,45 @@ export default function RecruitmentToolForm() {
         </button>
       </div>
 
-      {/* 採用カウンター */}
-      <section className="adoption-counters">
-        <h2>採用メッセージカウンター</h2>
-        <div className="counters-container">
-          <div className="counter-item">
-            <div className="counter-header">
-              <span className="counter-label">カウンター 1</span>
-              <span className="counter-value">{counter1}</span>
-            </div>
-            <div className="counter-controls">
-              <button onClick={() => decrementCounter(1)} className="btn-counter-minus">
-                -
-              </button>
-              <button onClick={() => incrementCounter(1)} className="btn-counter-plus">
-                +
-              </button>
-              <button onClick={() => clearCounter(1)} className="btn-counter-clear">
-                クリア
-              </button>
-            </div>
+      {/* 採用カウンター（フロート表示） */}
+      <div className="floating-counters">
+        <div className="floating-counters-header">カウンター</div>
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">1</span>
+            <span className="counter-value">{counter1}</span>
           </div>
-
-          <div className="counter-item">
-            <div className="counter-header">
-              <span className="counter-label">カウンター 2</span>
-              <span className="counter-value">{counter2}</span>
-            </div>
-            <div className="counter-controls">
-              <button onClick={() => decrementCounter(2)} className="btn-counter-minus">
-                -
-              </button>
-              <button onClick={() => incrementCounter(2)} className="btn-counter-plus">
-                +
-              </button>
-              <button onClick={() => clearCounter(2)} className="btn-counter-clear">
-                クリア
-              </button>
-            </div>
-          </div>
-
-          <div className="counter-item">
-            <div className="counter-header">
-              <span className="counter-label">カウンター 3</span>
-              <span className="counter-value">{counter3}</span>
-            </div>
-            <div className="counter-controls">
-              <button onClick={() => decrementCounter(3)} className="btn-counter-minus">
-                -
-              </button>
-              <button onClick={() => incrementCounter(3)} className="btn-counter-plus">
-                +
-              </button>
-              <button onClick={() => clearCounter(3)} className="btn-counter-clear">
-                クリア
-              </button>
-            </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(1)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(1)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(1)} className="btn-counter-clear">×</button>
           </div>
         </div>
-      </section>
+
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">2</span>
+            <span className="counter-value">{counter2}</span>
+          </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(2)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(2)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(2)} className="btn-counter-clear">×</button>
+          </div>
+        </div>
+
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">3</span>
+            <span className="counter-value">{counter3}</span>
+          </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(3)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(3)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(3)} className="btn-counter-clear">×</button>
+          </div>
+        </div>
+      </div>
 
       {/* 生成結果 */}
       {generatedComment && (

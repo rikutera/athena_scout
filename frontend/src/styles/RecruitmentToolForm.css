@@ -238,111 +238,144 @@
   }
 }
 
-/* 採用カウンター */
-.adoption-counters {
-  background-color: #fff8e1;
+/* フロート表示カウンター */
+.floating-counters {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background-color: #fff;
   border: 2px solid #ffa726;
-}
-
-.counters-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.counter-item {
-  background-color: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+}
+
+.floating-counters-header {
+  text-align: center;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #ffa726;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ffa726;
+}
+
+.floating-counters .counter-item {
+  background-color: #fff8e1;
+  border: 1px solid #ffe0b2;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
   text-align: center;
   transition: all 0.3s ease;
 }
 
-.counter-item:hover {
+.floating-counters .counter-item:last-child {
+  margin-bottom: 0;
+}
+
+.floating-counters .counter-item:hover {
   border-color: #ffa726;
-  box-shadow: 0 4px 12px rgba(255, 167, 38, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 167, 38, 0.2);
 }
 
-.counter-header {
-  margin-bottom: 8px;
+.floating-counters .counter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 0 4px;
 }
 
-.counter-label {
-  display: block;
-  font-size: 0.8em;
+.floating-counters .counter-label {
+  font-size: 0.75em;
   font-weight: 600;
   color: #666;
-  margin-bottom: 4px;
 }
 
-.counter-value {
-  display: block;
-  font-size: 1.8em;
+.floating-counters .counter-value {
+  font-size: 1.2em;
   font-weight: 700;
   color: #ffa726;
-  line-height: 1;
 }
 
-.counter-controls {
+.floating-counters .counter-controls {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
 }
 
-.btn-counter-minus,
-.btn-counter-plus,
-.btn-counter-clear {
-  padding: 6px 12px;
+.floating-counters .btn-counter-minus,
+.floating-counters .btn-counter-plus,
+.floating-counters .btn-counter-clear {
+  padding: 4px 8px;
   border: none;
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 0.75em;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 30px;
 }
 
-.btn-counter-minus {
+.floating-counters .btn-counter-minus {
   background-color: #ff5252;
   color: white;
-  flex: 1;
 }
 
-.btn-counter-minus:hover {
+.floating-counters .btn-counter-minus:hover {
   background-color: #ff1744;
   transform: scale(1.05);
 }
 
-.btn-counter-plus {
+.floating-counters .btn-counter-plus {
   background-color: #4caf50;
   color: white;
-  flex: 1;
 }
 
-.btn-counter-plus:hover {
+.floating-counters .btn-counter-plus:hover {
   background-color: #388e3c;
   transform: scale(1.05);
 }
 
-.btn-counter-clear {
+.floating-counters .btn-counter-clear {
   background-color: #9e9e9e;
   color: white;
-  flex: 1;
 }
 
-.btn-counter-clear:hover {
+.floating-counters .btn-counter-clear:hover {
   background-color: #757575;
   transform: scale(1.05);
 }
 
-.btn-counter-minus:active,
-.btn-counter-plus:active,
-.btn-counter-clear:active {
+.floating-counters .btn-counter-minus:active,
+.floating-counters .btn-counter-plus:active,
+.floating-counters .btn-counter-clear:active {
   transform: scale(0.95);
 }
 
 @media (max-width: 768px) {
-  .counters-container {
-    grid-template-columns: 1fr;
+  .floating-counters {
+    bottom: 60px;
+    right: 10px;
+    min-width: 120px;
+    padding: 10px;
+  }
+
+  .floating-counters-header {
+    font-size: 0.75em;
+    margin-bottom: 8px;
+  }
+
+  .floating-counters .counter-item {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+
+  .floating-counters .counter-value {
+    font-size: 1em;
   }
 }
