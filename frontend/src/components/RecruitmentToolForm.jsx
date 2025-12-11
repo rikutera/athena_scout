@@ -509,7 +509,7 @@ export default function RecruitmentToolForm() {
         <div className="floating-counters-header">カウンター</div>
         <div className="counter-item">
           <div className="counter-header">
-            <span className="counter-label">1</span>
+            <span className="counter-label">A</span>
             <span className="counter-value">{counter1}</span>
           </div>
           <div className="counter-controls">
@@ -521,7 +521,7 @@ export default function RecruitmentToolForm() {
 
         <div className="counter-item">
           <div className="counter-header">
-            <span className="counter-label">2</span>
+            <span className="counter-label">B</span>
             <span className="counter-value">{counter2}</span>
           </div>
           <div className="counter-controls">
@@ -533,7 +533,7 @@ export default function RecruitmentToolForm() {
 
         <div className="counter-item">
           <div className="counter-header">
-            <span className="counter-label">3</span>
+            <span className="counter-label">C</span>
             <span className="counter-value">{counter3}</span>
           </div>
           <div className="counter-controls">
