@@ -284,11 +284,13 @@ const TeamsPage = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      <div className="action-bar">
-        <button className="btn-add" onClick={handleAddTeam}>
-          + 新規チーム追加
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="action-bar">
+          <button className="btn-add" onClick={handleAddTeam}>
+            + 新規チーム追加
+          </button>
+        </div>
+      )}
 
       <div className="teams-table">
         <table>

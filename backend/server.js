@@ -1417,22 +1417,50 @@ app.get('/api/admin/generation-history/download-csv', authenticateToken, require
 // ========== チーム管理 API（管理者・責任者）==========
 
 // チーム一覧取得
-app.get('/api/admin/teams', authenticateToken, requireAdminOrManager, async (_req, res) => {
+app.get('/api/admin/teams', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT
-        t.id,
-        t.team_name,
-        t.description,
-        t.created_at,
-        t.updated_at,
-        COUNT(DISTINCT tm.user_id) as member_count,
-        COUNT(DISTINCT CASE WHEN tm.is_manager = true THEN tm.user_id END) as manager_count
-      FROM teams t
-      LEFT JOIN team_members tm ON t.id = tm.team_id
-      GROUP BY t.id, t.team_name, t.description, t.created_at, t.updated_at
-      ORDER BY t.team_name
-    `);
+    let query;
+    let params = [];
+
+    if (req.user.userRole === 'admin') {
+      // 管理者: 全チームを取得
+      query = `
+        SELECT
+          t.id,
+          t.team_name,
+          t.description,
+          t.created_at,
+          t.updated_at,
+          COUNT(DISTINCT tm.user_id) as member_count,
+          COUNT(DISTINCT CASE WHEN tm.is_manager = true THEN tm.user_id END) as manager_count
+        FROM teams t
+        LEFT JOIN team_members tm ON t.id = tm.team_id
+        GROUP BY t.id, t.team_name, t.description, t.created_at, t.updated_at
+        ORDER BY t.team_name
+      `;
+    } else {
+      // 責任者: 自身が所属するチームのみを取得
+      query = `
+        SELECT
+          t.id,
+          t.team_name,
+          t.description,
+          t.created_at,
+          t.updated_at,
+          COUNT(DISTINCT tm.user_id) as member_count,
+          COUNT(DISTINCT CASE WHEN tm.is_manager = true THEN tm.user_id END) as manager_count
+        FROM teams t
+        LEFT JOIN team_members tm ON t.id = tm.team_id
+        WHERE t.id IN (
+          SELECT team_id FROM team_members WHERE user_id = $1
+        )
+        GROUP BY t.id, t.team_name, t.description, t.created_at, t.updated_at
+        ORDER BY t.team_name
+      `;
+      params = [req.user.userId];
+    }
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching teams:', error);
