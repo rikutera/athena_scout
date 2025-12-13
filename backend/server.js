@@ -1490,6 +1490,7 @@ app.get('/api/admin/teams/:id', authenticateToken, requireAdminOrManager, async 
       SELECT
         u.id,
         u.username,
+        u.username_jp,
         u.user_role,
         u.user_status,
         tm.is_manager,
