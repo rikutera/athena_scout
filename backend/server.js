@@ -373,7 +373,7 @@ app.get('/api/users', authenticateToken, requireAdminOrManager, async (req, res)
 // 新規ユーザー作成（管理者用）
 app.post('/api/users', authenticateToken, requireAdmin, logActivity('ユーザー作成'), async (req, res) => {
   try {
-    const { username, password, user_status, user_role } = req.body;
+    const { username, username_jp, password, user_status, user_role } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ error: 'ユーザー名とパスワードは必須です' });
@@ -386,8 +386,8 @@ app.post('/api/users', authenticateToken, requireAdmin, logActivity('ユーザ�
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO users (username, password_hash, user_status, user_role) VALUES ($1, $2, $3, $4) RETURNING id, username, user_status, user_role, created_at',
-      [username, hashedPassword, user_status || 'active', user_role || 'user']
+      'INSERT INTO users (username, username_jp, password_hash, user_status, user_role) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, username_jp, user_status, user_role, created_at',
+      [username, username_jp || null, hashedPassword, user_status || 'active', user_role || 'user']
     );
 
     res.json({ success: true, user: result.rows[0] });
@@ -404,7 +404,7 @@ app.post('/api/users', authenticateToken, requireAdmin, logActivity('ユーザ�
 // 特定ユーザー更新（管理者用）
 app.put('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユーザー更新'), async (req, res) => {
   try {
-    const { username, password, user_status, user_role } = req.body;
+    const { username, username_jp, password, user_status, user_role } = req.body;
     const userId = req.params.id;
 
     if (!username) {
@@ -420,14 +420,14 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, logActivity('ユー�
     }
 
     const query = hashedPassword
-      ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
-         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at, updated_at`
-      : `UPDATE users SET username = $1, user_status = $2, user_role = $3, updated_at = NOW() 
-         WHERE id = $4 RETURNING id, username, user_status, user_role, created_at, updated_at`;
+      ? `UPDATE users SET username = $1, username_jp = $2, password_hash = $3, user_status = $4, user_role = $5, updated_at = NOW()
+         WHERE id = $6 RETURNING id, username, username_jp, user_status, user_role, created_at, updated_at`
+      : `UPDATE users SET username = $1, username_jp = $2, user_status = $3, user_role = $4, updated_at = NOW()
+         WHERE id = $5 RETURNING id, username, username_jp, user_status, user_role, created_at, updated_at`;
 
     const params = hashedPassword
-      ? [username, hashedPassword, user_status, user_role, userId]
-      : [username, user_status, user_role, userId];
+      ? [username, username_jp || null, hashedPassword, user_status, user_role, userId]
+      : [username, username_jp || null, user_status, user_role, userId];
 
     const result = await pool.query(query, params);
 

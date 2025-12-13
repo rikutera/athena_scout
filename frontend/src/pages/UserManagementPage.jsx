@@ -13,6 +13,7 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
+    username_jp: '',
     password: '',
     passwordConfirm: '',
     user_status: 'active',
@@ -62,6 +63,7 @@ export default function UserManagementPage() {
     setEditingUser(null);
     setFormData({
       username: '',
+      username_jp: '',
       password: '',
       passwordConfirm: '',
       user_status: 'active',
@@ -101,6 +103,7 @@ export default function UserManagementPage() {
       if (editingUser) {
         const updateData = {
           username: formData.username,
+          username_jp: formData.username_jp,
           user_status: formData.user_status,
           user_role: formData.user_role,
         };
@@ -112,6 +115,7 @@ export default function UserManagementPage() {
       } else {
         await apiClient.post('/api/users', {
           username: formData.username,
+          username_jp: formData.username_jp,
           password: formData.password,
           user_status: formData.user_status,
           user_role: formData.user_role,
@@ -131,6 +135,7 @@ export default function UserManagementPage() {
     setEditingUser(user);
     setFormData({
       username: user.username,
+      username_jp: user.username_jp || '',
       password: '',
       passwordConfirm: '',
       user_status: user.user_status,
@@ -159,6 +164,7 @@ export default function UserManagementPage() {
     setEditingUser(null);
     setFormData({
       username: '',
+      username_jp: '',
       password: '',
       passwordConfirm: '',
       user_status: 'active',
@@ -320,6 +326,17 @@ export default function UserManagementPage() {
                 placeholder="ユーザー名"
                 autoComplete="off"
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>日本語名</label>
+              <input
+                type="text"
+                value={formData.username_jp}
+                onChange={(e) => setFormData({ ...formData, username_jp: e.target.value })}
+                placeholder="山田 太郎"
+                autoComplete="off"
               />
             </div>
 
