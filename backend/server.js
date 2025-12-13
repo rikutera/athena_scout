@@ -196,6 +196,7 @@ app.post('/api/auth/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
+        username_jp: user.username_jp,
         user_role: user.user_role,
         user_status: user.user_status
       }
@@ -212,7 +213,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, user_status, user_role, created_at FROM users WHERE id = $1',
+      'SELECT id, username, username_jp, user_status, user_role, created_at FROM users WHERE id = $1',
       [req.user.userId]
     );
 
