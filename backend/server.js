@@ -678,7 +678,7 @@ app.get('/api/templates', authenticateToken, async (req, res) => {
     if (isAdmin) {
       // 管理者：全テンプレート表示
       result = await pool.query(
-        'SELECT * FROM templates ORDER BY created_at DESC'
+        'SELECT * FROM templates ORDER BY id ASC'
       );
     } else {
       // 一般ユーザー：ユーザー個別割り当て + チーム割り当てのテンプレートを表示
@@ -693,7 +693,7 @@ app.get('/api/templates', authenticateToken, async (req, res) => {
           INNER JOIN team_members tm ON tt.team_id = tm.team_id
           WHERE tm.user_id = $1
         )
-        ORDER BY t.created_at DESC
+        ORDER BY t.id ASC
       `, [req.user.userId]);
     }
 
