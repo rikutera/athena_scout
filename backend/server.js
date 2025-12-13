@@ -1436,7 +1436,7 @@ app.get('/api/admin/teams', authenticateToken, requireAdminOrManager, async (req
         FROM teams t
         LEFT JOIN team_members tm ON t.id = tm.team_id
         GROUP BY t.id, t.team_name, t.description, t.created_at, t.updated_at
-        ORDER BY t.team_name
+        ORDER BY t.id ASC
       `;
     } else {
       // 責任者: 自身が所属するチームのみを取得
@@ -1455,7 +1455,7 @@ app.get('/api/admin/teams', authenticateToken, requireAdminOrManager, async (req
           SELECT team_id FROM team_members WHERE user_id = $1
         )
         GROUP BY t.id, t.team_name, t.description, t.created_at, t.updated_at
-        ORDER BY t.team_name
+        ORDER BY t.id ASC
       `;
       params = [req.user.userId];
     }
