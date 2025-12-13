@@ -416,7 +416,7 @@ const TeamsPage = () => {
                   {selectedTeam.members.map(member => (
                     <div key={member.id} className="member-item">
                       <div className="member-info">
-                        <span className="member-name">{member.username}</span>
+                        <span className="member-name">{member.username_jp || member.username}</span>
                         <span className="member-role">({member.user_role})</span>
                         {member.is_manager && (
                           <span className="manager-badge">チーム長</span>
@@ -458,7 +458,7 @@ const TeamsPage = () => {
                     <option value="">メンバーを追加...</option>
                     {getAvailableUsers().map(user => (
                       <option key={user.id} value={user.id}>
-                        {user.username} ({user.user_role})
+                        {user.username_jp || user.username} ({user.user_role})
                       </option>
                     ))}
                   </select>

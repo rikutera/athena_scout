@@ -103,7 +103,7 @@ function App() {
             </li>
             <li className="nav-item nav-user">
               <Link to="/my-page" className="nav-link nav-username">
-                {user?.username}
+                {user?.username_jp || user?.username}
               </Link>
               <button onClick={handleLogout} className="nav-logout">
                 ログアウト
