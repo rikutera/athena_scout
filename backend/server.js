@@ -231,7 +231,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 // ユーザー情報更新
 app.put('/api/auth/me', authenticateToken, logActivity('プロフィール更新'), async (req, res) => {
   try {
-    const { username, password, user_status, user_role } = req.body;
+    const { username, username_jp, password, user_status, user_role } = req.body;
 
     if (!username) {
       return res.status(400).json({ error: 'ユーザー名は必須です' });
@@ -246,14 +246,14 @@ app.put('/api/auth/me', authenticateToken, logActivity('プロフィール更新
     }
 
     const query = hashedPassword
-      ? `UPDATE users SET username = $1, password_hash = $2, user_status = $3, user_role = $4, updated_at = NOW() 
-         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`
-      : `UPDATE users SET username = $1, user_status = $3, user_role = $4, updated_at = NOW() 
-         WHERE id = $5 RETURNING id, username, user_status, user_role, created_at`;
+      ? `UPDATE users SET username = $1, username_jp = $2, password_hash = $3, user_status = $4, user_role = $5, updated_at = NOW()
+         WHERE id = $6 RETURNING id, username, username_jp, user_status, user_role, created_at`
+      : `UPDATE users SET username = $1, username_jp = $2, user_status = $3, user_role = $4, updated_at = NOW()
+         WHERE id = $5 RETURNING id, username, username_jp, user_status, user_role, created_at`;
 
     const params = hashedPassword
-      ? [username, hashedPassword, user_status, user_role, req.user.userId]
-      : [username, null, user_status, user_role, req.user.userId];
+      ? [username, username_jp || null, hashedPassword, user_status, user_role, req.user.userId]
+      : [username, username_jp || null, user_status, user_role, req.user.userId];
 
     const result = await pool.query(query, params);
 
