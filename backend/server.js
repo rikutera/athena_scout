@@ -330,6 +330,7 @@ app.get('/api/users', authenticateToken, requireAdminOrManager, async (req, res)
         SELECT DISTINCT ON (u.id)
           u.id,
           u.username,
+          u.username_jp,
           u.user_status,
           u.user_role,
           u.created_at,
@@ -345,6 +346,7 @@ app.get('/api/users', authenticateToken, requireAdminOrManager, async (req, res)
         SELECT DISTINCT ON (u.id)
           u.id,
           u.username,
+          u.username_jp,
           u.user_status,
           u.user_role,
           u.created_at,
