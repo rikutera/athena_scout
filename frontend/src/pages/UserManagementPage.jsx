@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 import apiClient from '../utils/apiClient';
 import '../styles/UserManagement.css';
 
 export default function UserManagementPage() {
+  const { user: currentUser } = useUser();
+  const isAdmin = currentUser?.user_role === 'admin';
+
   const [users, setUsers] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -27,18 +31,15 @@ export default function UserManagementPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [logsLoading, setLogsLoading] = useState(false);
 
+  // ページネーション用の状態
+  const [activityPage, setActivityPage] = useState(1);
+  const [generationPage, setGenerationPage] = useState(1);
+  const itemsPerPage = 40;
+
   // 生成履歴詳細モーダル
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
 
-  // テンプレート・出力ルール割り当てモーダル用の状態
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [assigningUser, setAssigningUser] = useState(null);
-  const [availableTemplates, setAvailableTemplates] = useState([]);
-  const [availableOutputRules, setAvailableOutputRules] = useState([]);
-  const [selectedTemplates, setSelectedTemplates] = useState([]);
-  const [selectedOutputRules, setSelectedOutputRules] = useState([]);
-  const [assignLoading, setAssignLoading] = useState(false);
 
   useEffect(() => {
     document.title = 'ユーザー管理 - Athena Scout';
@@ -202,6 +203,8 @@ export default function UserManagementPage() {
     setLoginLogs([]);
     setActivityLogs([]);
     setGenerationHistory([]);
+    setActivityPage(1);
+    setGenerationPage(1);
   };
 
   const handleShowDetail = (history) => {
@@ -214,93 +217,6 @@ export default function UserManagementPage() {
     setSelectedHistory(null);
   };
 
-  // ========== テンプレート・出力ルール割り当て関数 ==========
-
-  const handleShowAssignModal = async (user) => {
-    setAssigningUser(user);
-    setShowAssignModal(true);
-    setAssignLoading(true);
-    setError('');
-
-    try {
-      // 全テンプレート取得
-      const templatesResponse = await apiClient.get('/api/templates');
-      setAvailableTemplates(templatesResponse.data);
-
-      // 全出力ルール取得
-      const outputRulesResponse = await apiClient.get('/api/output-rules');
-      setAvailableOutputRules(outputRulesResponse.data);
-
-      // ユーザーに割り当てられたテンプレート取得
-      const userTemplatesResponse = await apiClient.get(`/api/users/${user.id}/templates`);
-      const userTemplateIds = userTemplatesResponse.data.map(t => t.id);
-      setSelectedTemplates(userTemplateIds);
-
-      // ユーザーに割り当てられた出力ルール取得
-      const userOutputRulesResponse = await apiClient.get(`/api/users/${user.id}/output-rules`);
-      const userOutputRuleIds = userOutputRulesResponse.data.map(r => r.id);
-      setSelectedOutputRules(userOutputRuleIds);
-    } catch (error) {
-      console.error('Error loading assignment data:', error);
-      setError('割り当てデータの読み込みに失敗しました');
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
-  const handleCloseAssignModal = () => {
-    setShowAssignModal(false);
-    setAssigningUser(null);
-    setAvailableTemplates([]);
-    setAvailableOutputRules([]);
-    setSelectedTemplates([]);
-    setSelectedOutputRules([]);
-  };
-
-  const handleToggleTemplate = (templateId) => {
-    setSelectedTemplates(prev =>
-      prev.includes(templateId)
-        ? prev.filter(id => id !== templateId)
-        : [...prev, templateId]
-    );
-  };
-
-  const handleToggleOutputRule = (ruleId) => {
-    setSelectedOutputRules(prev =>
-      prev.includes(ruleId)
-        ? prev.filter(id => id !== ruleId)
-        : [...prev, ruleId]
-    );
-  };
-
-  const handleSaveAssignments = async () => {
-    if (!assigningUser) return;
-
-    setAssignLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      // テンプレート割り当て保存
-      await apiClient.post(`/api/users/${assigningUser.id}/templates`, {
-        template_ids: selectedTemplates
-      });
-
-      // 出力ルール割り当て保存
-      await apiClient.post(`/api/users/${assigningUser.id}/output-rules`, {
-        output_rule_ids: selectedOutputRules
-      });
-
-      setMessage('割り当てを保存しました');
-      handleCloseAssignModal();
-    } catch (error) {
-      console.error('Error saving assignments:', error);
-      setError(error.response?.data?.error || '割り当ての保存に失敗しました');
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
   if (loading) {
     return <div className="user-management"><p>読み込み中...</p></div>;
   }
@@ -310,7 +226,7 @@ export default function UserManagementPage() {
       <div className="page-header">
         <h1>ユーザー管理</h1>
         <Link to="/" className="btn-back">
-          ← ホームに戻る
+          ← オファーメッセージ生成に戻る
         </Link>
       </div>
 
@@ -319,11 +235,13 @@ export default function UserManagementPage() {
 
       {!showAddForm ? (
         <>
-          <div className="action-bar">
-            <button onClick={handleAddNew} className="btn-add">
-              + 新規ユーザー追加
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="action-bar">
+              <button onClick={handleAddNew} className="btn-add">
+                + 新規ユーザー追加
+              </button>
+            </div>
+          )}
 
           <div className="users-table">
             <table>
@@ -361,29 +279,27 @@ export default function UserManagementPage() {
                     </td>
                     <td>
                       <button
-                        onClick={() => handleShowAssignModal(user)}
-                        className="btn-assign-small"
-                      >
-                        割り当て
-                      </button>
-                      <button
                         onClick={() => handleShowLogs(user)}
                         className="btn-logs-small"
                       >
                         履歴
                       </button>
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="btn-edit-small"
-                      >
-                        編集
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id, user.username)}
-                        className="btn-delete-small"
-                      >
-                        削除
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="btn-edit-small"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user.id, user.username)}
+                            className="btn-delete-small"
+                          >
+                            削除
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -537,22 +453,47 @@ export default function UserManagementPage() {
                       {activityLogs.length === 0 ? (
                         <p>利用履歴がありません</p>
                       ) : (
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>日時</th>
-                              <th>アクション</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {activityLogs.map((log) => (
-                              <tr key={log.id}>
-                                <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
-                                <td>{log.action}</td>
+                        <>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>日時</th>
+                                <th>アクション</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {activityLogs
+                                .slice((activityPage - 1) * itemsPerPage, activityPage * itemsPerPage)
+                                .map((log) => (
+                                  <tr key={log.id}>
+                                    <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
+                                    <td>{log.action}</td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                          {activityLogs.length > itemsPerPage && (
+                            <div className="pagination">
+                              <button
+                                onClick={() => setActivityPage(prev => Math.max(1, prev - 1))}
+                                disabled={activityPage === 1}
+                                className="pagination-btn"
+                              >
+                                前へ
+                              </button>
+                              <span className="pagination-info">
+                                {activityPage} / {Math.ceil(activityLogs.length / itemsPerPage)}
+                              </span>
+                              <button
+                                onClick={() => setActivityPage(prev => Math.min(Math.ceil(activityLogs.length / itemsPerPage), prev + 1))}
+                                disabled={activityPage >= Math.ceil(activityLogs.length / itemsPerPage)}
+                                className="pagination-btn"
+                              >
+                                次へ
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -562,36 +503,61 @@ export default function UserManagementPage() {
                       {generationHistory.length === 0 ? (
                         <p>生成履歴がありません</p>
                       ) : (
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>生成日時</th>
-                              <th>テンプレート名</th>
-                              <th>生成メッセージ（プレビュー）</th>
-                              <th>操作</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {generationHistory.map((history) => (
-                              <tr key={history.id}>
-                                <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
-                                <td>{history.template_name || '未設定'}</td>
-                                <td className="message-preview">
-                                  {history.generated_comment.substring(0, 50)}
-                                  {history.generated_comment.length > 50 && '...'}
-                                </td>
-                                <td>
-                                  <button
-                                    onClick={() => handleShowDetail(history)}
-                                    className="btn-view-detail-small"
-                                  >
-                                    詳細
-                                  </button>
-                                </td>
+                        <>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>生成日時</th>
+                                <th>テンプレート名</th>
+                                <th>生成メッセージ（プレビュー）</th>
+                                <th>操作</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {generationHistory
+                                .slice((generationPage - 1) * itemsPerPage, generationPage * itemsPerPage)
+                                .map((history) => (
+                                  <tr key={history.id}>
+                                    <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
+                                    <td>{history.template_name || '未設定'}</td>
+                                    <td className="message-preview">
+                                      {history.generated_comment.substring(0, 50)}
+                                      {history.generated_comment.length > 50 && '...'}
+                                    </td>
+                                    <td>
+                                      <button
+                                        onClick={() => handleShowDetail(history)}
+                                        className="btn-view-detail-small"
+                                      >
+                                        詳細
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                          {generationHistory.length > itemsPerPage && (
+                            <div className="pagination">
+                              <button
+                                onClick={() => setGenerationPage(prev => Math.max(1, prev - 1))}
+                                disabled={generationPage === 1}
+                                className="pagination-btn"
+                              >
+                                前へ
+                              </button>
+                              <span className="pagination-info">
+                                {generationPage} / {Math.ceil(generationHistory.length / itemsPerPage)}
+                              </span>
+                              <button
+                                onClick={() => setGenerationPage(prev => Math.min(Math.ceil(generationHistory.length / itemsPerPage), prev + 1))}
+                                disabled={generationPage >= Math.ceil(generationHistory.length / itemsPerPage)}
+                                className="pagination-btn"
+                              >
+                                次へ
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -656,82 +622,6 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      {/* テンプレート・出力ルール割り当てモーダル */}
-      {showAssignModal && assigningUser && (
-        <div className="modal-overlay" onClick={handleCloseAssignModal}>
-          <div className="modal-content assign-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{assigningUser.username} に割り当て</h2>
-              <button className="modal-close" onClick={handleCloseAssignModal}>×</button>
-            </div>
-
-            <div className="modal-body">
-              {assignLoading ? (
-                <p>読み込み中...</p>
-              ) : (
-                <>
-                  <div className="assignment-section">
-                    <h3>テンプレート</h3>
-                    <div className="checkbox-list">
-                      {availableTemplates.length === 0 ? (
-                        <p>利用可能なテンプレートがありません</p>
-                      ) : (
-                        availableTemplates.map(template => (
-                          <label key={template.id} className="checkbox-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedTemplates.includes(template.id)}
-                              onChange={() => handleToggleTemplate(template.id)}
-                            />
-                            <span>{template.template_name}</span>
-                          </label>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="assignment-section">
-                    <h3>出力ルール</h3>
-                    <div className="checkbox-list">
-                      {availableOutputRules.length === 0 ? (
-                        <p>利用可能な出力ルールがありません</p>
-                      ) : (
-                        availableOutputRules.map(rule => (
-                          <label key={rule.id} className="checkbox-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedOutputRules.includes(rule.id)}
-                              onChange={() => handleToggleOutputRule(rule.id)}
-                            />
-                            <span>{rule.rule_name}</span>
-                          </label>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="modal-actions">
-              <button
-                onClick={handleSaveAssignments}
-                className="btn-save"
-                disabled={assignLoading}
-              >
-                保存
-              </button>
-              <button
-                onClick={handleCloseAssignModal}
-                className="btn-cancel"
-                disabled={assignLoading}
-              >
-                キャンセル
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

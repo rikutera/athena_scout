@@ -119,14 +119,30 @@
     background-color: #e7f3ff;
     border: 2px solid #007bff;
   }
-  
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .character-count {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 600;
+  }
+
   .result-box {
     background-color: white;
     padding: 20px;
     border-radius: 4px;
     border-left: 4px solid #007bff;
   }
-  
+
   .result-box p {
     line-height: 1.8;
     color: #333;
@@ -156,7 +172,7 @@
   margin-top: 10px;
 }
 
-.btn-paste,
+.btn-paste-generate,
 .btn-clear {
   flex: 1;
   padding: 10px 20px;
@@ -168,13 +184,18 @@
   font-weight: 500;
 }
 
-.btn-paste {
+.btn-paste-generate {
   background-color: #4CAF50;
   color: white;
 }
 
-.btn-paste:hover {
+.btn-paste-generate:hover:not(:disabled) {
   background-color: #45a049;
+}
+
+.btn-paste-generate:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .btn-clear {
@@ -186,7 +207,7 @@
   background-color: #da190b;
 }
 
-.btn-paste:active,
+.btn-paste-generate:active:not(:disabled),
 .btn-clear:active {
   transform: scale(0.98);
 }
@@ -214,5 +235,147 @@
   to {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+/* フロート表示カウンター */
+.floating-counters {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background-color: #fff;
+  border: 2px solid #ffa726;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+}
+
+.floating-counters-header {
+  text-align: center;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #ffa726;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ffa726;
+}
+
+.floating-counters .counter-item {
+  background-color: #fff8e1;
+  border: 1px solid #ffe0b2;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.floating-counters .counter-item:last-child {
+  margin-bottom: 0;
+}
+
+.floating-counters .counter-item:hover {
+  border-color: #ffa726;
+  box-shadow: 0 2px 8px rgba(255, 167, 38, 0.2);
+}
+
+.floating-counters .counter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.floating-counters .counter-label {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #666;
+}
+
+.floating-counters .counter-value {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #ffa726;
+}
+
+.floating-counters .counter-controls {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.floating-counters .btn-counter-minus,
+.floating-counters .btn-counter-plus,
+.floating-counters .btn-counter-clear {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 30px;
+}
+
+.floating-counters .btn-counter-minus {
+  background-color: #ff5252;
+  color: white;
+}
+
+.floating-counters .btn-counter-minus:hover {
+  background-color: #ff1744;
+  transform: scale(1.05);
+}
+
+.floating-counters .btn-counter-plus {
+  background-color: #4caf50;
+  color: white;
+}
+
+.floating-counters .btn-counter-plus:hover {
+  background-color: #388e3c;
+  transform: scale(1.05);
+}
+
+.floating-counters .btn-counter-clear {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.floating-counters .btn-counter-clear:hover {
+  background-color: #757575;
+  transform: scale(1.05);
+}
+
+.floating-counters .btn-counter-minus:active,
+.floating-counters .btn-counter-plus:active,
+.floating-counters .btn-counter-clear:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .floating-counters {
+    bottom: 60px;
+    right: 10px;
+    min-width: 120px;
+    padding: 10px;
+  }
+
+  .floating-counters-header {
+    font-size: 0.75em;
+    margin-bottom: 8px;
+  }
+
+  .floating-counters .counter-item {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+
+  .floating-counters .counter-value {
+    font-size: 1em;
   }
 }

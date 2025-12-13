@@ -1,0 +1,482 @@
+.teams-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.action-bar {
+  margin-bottom: 20px;
+}
+
+.btn-add {
+  padding: 12px 24px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.btn-add:hover {
+  background-color: #2980b9;
+}
+
+.teams-table {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.teams-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.teams-table th,
+.teams-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ecf0f1;
+  color: #2c3e50;
+}
+
+.teams-table th {
+  background-color: #34495e;
+  color: white;
+  font-weight: 600;
+}
+
+.teams-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* カラム幅の設定 */
+.teams-table th:nth-child(1),
+.teams-table td:nth-child(1) {
+  width: 60px;
+}
+
+.teams-table th:nth-child(2),
+.teams-table td:nth-child(2) {
+  width: 150px;
+}
+
+.teams-table th:nth-child(3),
+.teams-table td:nth-child(3) {
+  width: auto;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teams-table th:nth-child(4),
+.teams-table td:nth-child(4) {
+  width: 100px;
+}
+
+.teams-table th:nth-child(5),
+.teams-table td:nth-child(5) {
+  width: 280px;
+  min-width: 280px;
+  white-space: nowrap;
+}
+
+.btn-logs-small,
+.btn-edit-small,
+.btn-delete-small {
+  padding: 6px 12px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-logs-small {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn-logs-small:hover {
+  background-color: #138496;
+}
+
+.btn-edit-small {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.btn-edit-small:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete-small {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete-small:hover {
+  background-color: #c82333;
+}
+
+.error-message {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-weight: 500;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* モーダル */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-wide {
+  max-width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}
+
+.btn-close:hover {
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-cancel:hover {
+  background-color: #7f8c8d;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-save:hover {
+  background-color: #2980b9;
+}
+
+/* メンバー管理モーダル */
+.members-section {
+  margin-top: 24px;
+}
+
+.members-section h3 {
+  margin-bottom: 12px;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.members-list {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+}
+
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.member-role {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-left: 8px;
+}
+
+.manager-badge {
+  background-color: #27ae60;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+.member-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-toggle-manager {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: #3498db;
+  color: white;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-toggle-manager:hover {
+  background-color: #2980b9;
+}
+
+.btn-remove-member {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: #e74c3c;
+  color: white;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-remove-member:hover {
+  background-color: #c0392b;
+}
+
+.add-member-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.add-member-form select {
+  flex: 1;
+}
+
+/* 割り当て管理モーダル */
+.assignments-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.assignment-section {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px;
+  background-color: #f8f9fa;
+}
+
+.assignment-section h3 {
+  margin: 0 0 16px 0;
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.assigned-items-list {
+  border: 1px solid #ecf0f1;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  background-color: white;
+}
+
+.assigned-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.assigned-item:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.btn-remove-item {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: #e74c3c;
+  color: white;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-remove-item:hover {
+  background-color: #c0392b;
+}
+
+.add-assignment-form {
+  margin-top: 12px;
+}
+
+.add-assignment-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .assignments-container {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .teams-table {
+    overflow-x: auto;
+  }
+
+  .btn-logs-small,
+  .btn-edit-small,
+  .btn-delete-small {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}

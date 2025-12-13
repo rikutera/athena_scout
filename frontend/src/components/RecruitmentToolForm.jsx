@@ -33,6 +33,20 @@ export default function RecruitmentToolForm() {
   const [generatedComment, setGeneratedComment] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // 採用カウンター（ローカルストレージに保存）
+  const [counter1, setCounter1] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter1');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [counter2, setCounter2] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter2');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [counter3, setCounter3] = useState(() => {
+    const saved = localStorage.getItem('adoptionCounter3');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
   // 初期ロード
   useEffect(() => {
     document.title = 'メッセージ生成 - Athena Scout';
@@ -41,6 +55,19 @@ export default function RecruitmentToolForm() {
     fetchOutputRules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // カウンターをローカルストレージに保存
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter1', String(counter1));
+  }, [counter1]);
+
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter2', String(counter2));
+  }, [counter2]);
+
+  useEffect(() => {
+    localStorage.setItem('adoptionCounter3', String(counter3));
+  }, [counter3]);
 
   // 保存済みテンプレート一覧取得
   const fetchTemplates = async () => {
@@ -227,6 +254,84 @@ export default function RecruitmentToolForm() {
     }
   };
 
+  // クリップボードから貼り付け ＋ コメント生成
+  const handlePasteAndGenerate = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setStudentProfile(text);
+
+      // 貼り付け後、コメント生成を実行
+      if (!jobType || !industry || !companyRequirement || !offerTemplate || !text || !outputRuleId) {
+        alert('すべてのフィールドを入力してください');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await apiClient.post('/api/generate', {
+          template_name: templateName || '未設定',
+          job_type: jobType,
+          industry: industry,
+          company_requirement: companyRequirement,
+          offer_template: offerTemplate,
+          student_profile: text,
+          output_rule_id: parseInt(outputRuleId, 10),
+        });
+        setGeneratedComment(response.data.comment);
+        showToast('コメントを生成しました ✓');
+      } catch (error) {
+        console.error('Error generating comment:', error);
+
+        let errorMessage = 'コメント生成に失敗しました';
+
+        if (error.response) {
+          const status = error.response.status;
+          const serverError = error.response.data?.error;
+
+          if (status === 429) {
+            errorMessage = 'APIの利用制限に達しました。しばらく時間をおいてから再度お試しください。';
+          } else if (status === 529) {
+            errorMessage = 'Claude APIが過負荷状態です。しばらく時間をおいてから再度お試しください。';
+          } else if (status >= 500) {
+            errorMessage = `サーバーエラーが発生しました（${status}）\n${serverError || ''}`;
+          } else if (serverError) {
+            errorMessage = `エラー: ${serverError}`;
+          }
+        } else if (error.request) {
+          errorMessage = 'サーバーに接続できませんでした。ネットワーク接続を確認してください。';
+        }
+
+        alert(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error pasting from clipboard:', error);
+      showToast('貼り付けに失敗しました');
+    }
+  };
+
+  // カウンター操作
+  const incrementCounter = (counterNum) => {
+    if (counterNum === 1) setCounter1(prev => prev + 1);
+    if (counterNum === 2) setCounter2(prev => prev + 1);
+    if (counterNum === 3) setCounter3(prev => prev + 1);
+  };
+
+  const decrementCounter = (counterNum) => {
+    if (counterNum === 1) setCounter1(prev => Math.max(0, prev - 1));
+    if (counterNum === 2) setCounter2(prev => Math.max(0, prev - 1));
+    if (counterNum === 3) setCounter3(prev => Math.max(0, prev - 1));
+  };
+
+  const clearCounter = (counterNum) => {
+    if (window.confirm('このカウンターをリセットしますか？')) {
+      if (counterNum === 1) setCounter1(0);
+      if (counterNum === 2) setCounter2(0);
+      if (counterNum === 3) setCounter3(0);
+    }
+  };
+
   return (
     <div className="recruitment-tool">
       <h1>メッセージ生成</h1>
@@ -320,7 +425,7 @@ export default function RecruitmentToolForm() {
         </div>
 
         <div className="form-group">
-          <label>スカウトメッセージテンプレート *</label>
+          <label>オファー文テンプレート *</label>
           <textarea
             value={offerTemplate}
             onChange={(e) => setOfferTemplate(e.target.value)}
@@ -370,11 +475,12 @@ export default function RecruitmentToolForm() {
           />
           <div className="profile-actions">
             <button
-              onClick={handlePasteProfile}
-              className="btn-paste"
+              onClick={handlePasteAndGenerate}
+              className="btn-paste-generate"
               type="button"
+              disabled={loading}
             >
-              貼り付け
+              {loading ? '生成中...' : '貼り付け ＋ コメント生成'}
             </button>
             <button
               onClick={handleClearProfile}
@@ -394,14 +500,57 @@ export default function RecruitmentToolForm() {
           disabled={loading}
           className="btn-generate"
         >
-          {loading ? '生成中...' : 'コメントを生成'}
+          {loading ? '生成中...' : 'コメントを再生成'}
         </button>
+      </div>
+
+      {/* 採用カウンター（フロート表示） */}
+      <div className="floating-counters">
+        <div className="floating-counters-header">カウンター</div>
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">A</span>
+            <span className="counter-value">{counter1}</span>
+          </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(1)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(1)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(1)} className="btn-counter-clear">×</button>
+          </div>
+        </div>
+
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">B</span>
+            <span className="counter-value">{counter2}</span>
+          </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(2)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(2)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(2)} className="btn-counter-clear">×</button>
+          </div>
+        </div>
+
+        <div className="counter-item">
+          <div className="counter-header">
+            <span className="counter-label">C</span>
+            <span className="counter-value">{counter3}</span>
+          </div>
+          <div className="counter-controls">
+            <button onClick={() => decrementCounter(3)} className="btn-counter-minus">-</button>
+            <button onClick={() => incrementCounter(3)} className="btn-counter-plus">+</button>
+            <button onClick={() => clearCounter(3)} className="btn-counter-clear">×</button>
+          </div>
+        </div>
       </div>
 
       {/* 生成結果 */}
       {generatedComment && (
         <section className="generated-result">
-          <h2>生成されたコメント</h2>
+          <div className="result-header">
+            <h2>生成されたコメント</h2>
+            <span className="character-count">{generatedComment.length}文字</span>
+          </div>
           <div className="result-box">
             <p>{generatedComment}</p>
             <button onClick={handleCopyComment} className="btn-copy">

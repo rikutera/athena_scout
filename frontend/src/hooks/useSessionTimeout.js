@@ -63,16 +63,20 @@ export const useSessionTimeout = (onLogout) => {
 
     // 初回のアクティビティ更新
     const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+
     if (!loginTime) {
-      localStorage.setItem('loginTime', Date.now().toString());
+      localStorage.setItem('loginTime', now.toString());
     }
-    localStorage.setItem('lastActivity', Date.now().toString());
+
+    localStorage.setItem('lastActivity', now.toString());
 
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
 
     const activityHandler = (e) => {
       // モーダル内のクリックは無視
-      if (e.target.closest('.timeout-modal')) {
+      // e.targetがElement型であることを確認してからclosestを使用
+      if (e.target && typeof e.target.closest === 'function' && e.target.closest('.timeout-modal')) {
         return;
       }
 
@@ -105,6 +109,8 @@ export const useSessionTimeout = (onLogout) => {
       const now = Date.now();
 
       const timeSinceLogin = now - loginTime;
+      const elapsed = now - lastActivity;
+      const remaining = TIMEOUT_DURATION - elapsed;
 
       if (timeSinceLogin >= ABSOLUTE_TIMEOUT) {
         // LocalStorageをクリア
@@ -119,9 +125,6 @@ export const useSessionTimeout = (onLogout) => {
         }
         return;
       }
-
-      const elapsed = now - lastActivity;
-      const remaining = TIMEOUT_DURATION - elapsed;
 
       if (elapsed >= TIMEOUT_DURATION) {
         // LocalStorageをクリア
