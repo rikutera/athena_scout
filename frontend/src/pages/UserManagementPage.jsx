@@ -265,7 +265,7 @@ export default function UserManagementPage() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.id}</td>
-                    <td>{user.username}</td>
+                    <td>{user.username_jp || user.username}</td>
                     <td>
                       <span className={`status-badge ${user.user_status}`}>
                         {user.user_status === 'active' ? 'アクティブ' : '無効'}
