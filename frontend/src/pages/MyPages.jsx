@@ -10,6 +10,7 @@ export default function MyPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
+    username_jp: '',
     password: '',
     passwordConfirm: '',
     user_status: 'active',
@@ -41,6 +42,7 @@ export default function MyPage() {
       setUser(response.data.user);
       setFormData({
         username: response.data.user.username,
+        username_jp: response.data.user.username_jp || '',
         password: '',
         passwordConfirm: '',
         user_status: response.data.user.user_status,
@@ -88,6 +90,7 @@ export default function MyPage() {
     try {
       const updateData = {
         username: formData.username,
+        username_jp: formData.username_jp,
         user_status: formData.user_status,
         user_role: formData.user_role,
       };
@@ -121,6 +124,7 @@ export default function MyPage() {
     setMessage('');
     setFormData({
       username: user.username,
+      username_jp: user.username_jp || '',
       password: '',
       passwordConfirm: '',
       user_status: user.user_status,
@@ -182,6 +186,11 @@ export default function MyPage() {
               <div className="info-row">
                 <label>ユーザー名</label>
                 <p>{user?.username}</p>
+              </div>
+
+              <div className="info-row">
+                <label>日本語名</label>
+                <p>{user?.username_jp || '未設定'}</p>
               </div>
 
               <div className="info-row">
@@ -310,6 +319,16 @@ export default function MyPage() {
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 placeholder="新しいユーザー名"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>日本語名</label>
+              <input
+                type="text"
+                value={formData.username_jp}
+                onChange={(e) => setFormData({ ...formData, username_jp: e.target.value })}
+                placeholder="山田 太郎"
               />
             </div>
 
