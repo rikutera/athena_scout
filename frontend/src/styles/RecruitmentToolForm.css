@@ -253,13 +253,30 @@
 }
 
 .floating-counters-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.85em;
   font-weight: 700;
   color: #ffa726;
   margin-bottom: 10px;
+  padding: 4px 8px;
   padding-bottom: 8px;
   border-bottom: 2px solid #ffa726;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.floating-counters-header:hover {
+  background-color: rgba(255, 167, 38, 0.1);
+  border-radius: 6px;
+}
+
+.floating-counters-header .collapse-icon {
+  font-size: 0.7em;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
 }
 
 .floating-counters .counter-item {
@@ -355,6 +372,26 @@
 .floating-counters .btn-counter-plus:active,
 .floating-counters .btn-counter-clear:active {
   transform: scale(0.95);
+}
+
+/* 折りたたみアニメーション */
+.floating-counters .counter-content {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.floating-counters.collapsed .counter-content {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.floating-counters.collapsed .floating-counters-header {
+  margin-bottom: 0;
+  padding-bottom: 4px;
+  border-bottom: none;
 }
 
 @media (max-width: 768px) {
