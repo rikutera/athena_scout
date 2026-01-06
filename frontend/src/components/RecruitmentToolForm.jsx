@@ -47,6 +47,12 @@ export default function RecruitmentToolForm() {
     return saved ? parseInt(saved, 10) : 0;
   });
 
+  // カウンターの開閉状態（ローカルストレージに保存）
+  const [isCounterCollapsed, setIsCounterCollapsed] = useState(() => {
+    const saved = localStorage.getItem('isCounterCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
   // 初期ロード
   useEffect(() => {
     document.title = 'メッセージ生成 - Athena Scout';
@@ -68,6 +74,11 @@ export default function RecruitmentToolForm() {
   useEffect(() => {
     localStorage.setItem('adoptionCounter3', String(counter3));
   }, [counter3]);
+
+  // カウンターの開閉状態を保存
+  useEffect(() => {
+    localStorage.setItem('isCounterCollapsed', JSON.stringify(isCounterCollapsed));
+  }, [isCounterCollapsed]);
 
   // 保存済みテンプレート一覧取得
   const fetchTemplates = async () => {
@@ -332,6 +343,11 @@ export default function RecruitmentToolForm() {
     }
   };
 
+  // カウンターの開閉トグル
+  const toggleCounterCollapse = () => {
+    setIsCounterCollapsed(prev => !prev);
+  };
+
   return (
     <div className="recruitment-tool">
       <h1>メッセージ生成</h1>
@@ -505,41 +521,46 @@ export default function RecruitmentToolForm() {
       </div>
 
       {/* 採用カウンター（フロート表示） */}
-      <div className="floating-counters">
-        <div className="floating-counters-header">カウンター</div>
-        <div className="counter-item">
-          <div className="counter-header">
-            <span className="counter-label">A</span>
-            <span className="counter-value">{counter1}</span>
-          </div>
-          <div className="counter-controls">
-            <button onClick={() => decrementCounter(1)} className="btn-counter-minus">-</button>
-            <button onClick={() => incrementCounter(1)} className="btn-counter-plus">+</button>
-            <button onClick={() => clearCounter(1)} className="btn-counter-clear">×</button>
-          </div>
+      <div className={`floating-counters ${isCounterCollapsed ? 'collapsed' : ''}`}>
+        <div className="floating-counters-header" onClick={toggleCounterCollapse}>
+          <span>カウンター</span>
+          <span className="collapse-icon">{isCounterCollapsed ? '▲' : '▼'}</span>
         </div>
+        <div className="counter-content">
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">A</span>
+              <span className="counter-value">{counter1}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(1)} className="btn-counter-minus">-</button>
+              <button onClick={() => incrementCounter(1)} className="btn-counter-plus">+</button>
+              <button onClick={() => clearCounter(1)} className="btn-counter-clear">×</button>
+            </div>
+          </div>
 
-        <div className="counter-item">
-          <div className="counter-header">
-            <span className="counter-label">B</span>
-            <span className="counter-value">{counter2}</span>
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">B</span>
+              <span className="counter-value">{counter2}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(2)} className="btn-counter-minus">-</button>
+              <button onClick={() => incrementCounter(2)} className="btn-counter-plus">+</button>
+              <button onClick={() => clearCounter(2)} className="btn-counter-clear">×</button>
+            </div>
           </div>
-          <div className="counter-controls">
-            <button onClick={() => decrementCounter(2)} className="btn-counter-minus">-</button>
-            <button onClick={() => incrementCounter(2)} className="btn-counter-plus">+</button>
-            <button onClick={() => clearCounter(2)} className="btn-counter-clear">×</button>
-          </div>
-        </div>
 
-        <div className="counter-item">
-          <div className="counter-header">
-            <span className="counter-label">C</span>
-            <span className="counter-value">{counter3}</span>
-          </div>
-          <div className="counter-controls">
-            <button onClick={() => decrementCounter(3)} className="btn-counter-minus">-</button>
-            <button onClick={() => incrementCounter(3)} className="btn-counter-plus">+</button>
-            <button onClick={() => clearCounter(3)} className="btn-counter-clear">×</button>
+          <div className="counter-item">
+            <div className="counter-header">
+              <span className="counter-label">C</span>
+              <span className="counter-value">{counter3}</span>
+            </div>
+            <div className="counter-controls">
+              <button onClick={() => decrementCounter(3)} className="btn-counter-minus">-</button>
+              <button onClick={() => incrementCounter(3)} className="btn-counter-plus">+</button>
+              <button onClick={() => clearCounter(3)} className="btn-counter-clear">×</button>
+            </div>
           </div>
         </div>
       </div>
