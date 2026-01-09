@@ -59,7 +59,7 @@ export default function MyPage() {
   const fetchGenerationHistory = async () => {
     setHistoryLoading(true);
     try {
-      const response = await apiClient.get('/api/my-generation-history?limit=50');
+      const response = await apiClient.get('/api/my-generation-history');
       setGenerationHistory(response.data);
     } catch (error) {
       console.error('Error fetching generation history:', error);
