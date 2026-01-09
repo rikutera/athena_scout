@@ -32,6 +32,34 @@ export default function MyPage() {
   const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 40;
 
+  // ページネーション番号を生成する関数
+  const getPaginationRange = (currentPage, totalPages) => {
+    const delta = 2; // 現在のページの前後に表示するページ数
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
   useEffect(() => {
     document.title = 'マイページ - Athena Scout';
     fetchUserInfo();
@@ -296,17 +324,27 @@ export default function MyPage() {
                       disabled={currentPage === 1}
                       className="pagination-btn"
                     >
-                      前へ
+                      ←
                     </button>
-                    <span className="pagination-info">
-                      {currentPage} / {totalPages}
-                    </span>
+                    {getPaginationRange(currentPage, totalPages).map((page, index) => (
+                      page === '...' ? (
+                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => fetchGenerationHistory(page)}
+                          className={`pagination-number ${currentPage === page ? 'active' : ''}`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
                     <button
                       onClick={() => fetchGenerationHistory(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage >= totalPages}
                       className="pagination-btn"
                     >
-                      次へ
+                      →
                     </button>
                   </div>
                 )}
