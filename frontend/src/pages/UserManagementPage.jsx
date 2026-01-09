@@ -182,17 +182,17 @@ export default function UserManagementPage() {
 
     try {
       const loginResponse = await apiClient.get('/api/admin/login-logs', {
-        params: { user_id: user.id, limit: 50 }
+        params: { user_id: user.id }
       });
       setLoginLogs(loginResponse.data);
 
       const activityResponse = await apiClient.get('/api/admin/activity-logs', {
-        params: { user_id: user.id, limit: 50 }
+        params: { user_id: user.id }
       });
       setActivityLogs(activityResponse.data);
 
       const generationResponse = await apiClient.get('/api/admin/generation-history', {
-        params: { user_id: user.id, limit: 50 }
+        params: { user_id: user.id }
       });
       setGenerationHistory(generationResponse.data);
     } catch (error) {

@@ -615,7 +615,7 @@ app.delete('/api/users/:id/output-rules/:outputRuleId', authenticateToken, requi
 // ログイン履歴取得
 app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id, limit = 100 } = req.query;
+    const { user_id } = req.query;
 
     let query = 'SELECT * FROM login_logs';
     let params = [];
@@ -625,8 +625,7 @@ app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async
       params.push(user_id);
     }
 
-    query += ' ORDER BY login_at DESC LIMIT $' + (params.length + 1);
-    params.push(limit);
+    query += ' ORDER BY login_at DESC';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -639,7 +638,7 @@ app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async
 // 利用履歴取得
 app.get('/api/admin/activity-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id, limit = 100 } = req.query;
+    const { user_id } = req.query;
 
     let query = 'SELECT * FROM activity_logs';
     let params = [];
@@ -649,8 +648,7 @@ app.get('/api/admin/activity-logs', authenticateToken, requireAdminOrManager, as
       params.push(user_id);
     }
 
-    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
-    params.push(limit);
+    query += ' ORDER BY created_at DESC';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -1296,11 +1294,9 @@ app.get('/api/admin/usage-stats', authenticateToken, requireAdmin, async (req, r
 // 自分の生成履歴取得
 app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
   try {
-    const { limit = 50 } = req.query;
-
     const result = await pool.query(
-      'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
-      [req.user.userId, limit]
+      'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC',
+      [req.user.userId]
     );
 
     res.json(result.rows);
@@ -1334,7 +1330,7 @@ app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res)
 // 管理者用：特定ユーザーの生成履歴取得
 app.get('/api/admin/generation-history', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id, limit = 100 } = req.query;
+    const { user_id } = req.query;
 
     let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
     let params = [];
@@ -1344,8 +1340,7 @@ app.get('/api/admin/generation-history', authenticateToken, requireAdminOrManage
       params.push(user_id);
     }
 
-    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
-    params.push(limit);
+    query += ' ORDER BY created_at DESC';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
