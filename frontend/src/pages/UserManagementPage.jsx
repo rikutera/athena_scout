@@ -45,6 +45,33 @@ export default function UserManagementPage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
 
+  // ページネーション番号を生成する関数
+  const getPaginationRange = (currentPage, totalPages) => {
+    const delta = 2; // 現在のページの前後に表示するページ数
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
 
   useEffect(() => {
     document.title = 'ユーザー管理 - Athena Scout';
@@ -513,17 +540,27 @@ export default function UserManagementPage() {
                                 disabled={loginPage === 1}
                                 className="pagination-btn"
                               >
-                                前へ
+                                ←
                               </button>
-                              <span className="pagination-info">
-                                {loginPage} / {loginTotalPages}
-                              </span>
+                              {getPaginationRange(loginPage, loginTotalPages).map((page, index) => (
+                                page === '...' ? (
+                                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                                ) : (
+                                  <button
+                                    key={page}
+                                    onClick={() => fetchLoginLogs(selectedUser.id, page)}
+                                    className={`pagination-number ${loginPage === page ? 'active' : ''}`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              ))}
                               <button
                                 onClick={() => fetchLoginLogs(selectedUser.id, Math.min(loginTotalPages, loginPage + 1))}
                                 disabled={loginPage >= loginTotalPages}
                                 className="pagination-btn"
                               >
-                                次へ
+                                →
                               </button>
                             </div>
                           )}
@@ -561,17 +598,27 @@ export default function UserManagementPage() {
                                 disabled={activityPage === 1}
                                 className="pagination-btn"
                               >
-                                前へ
+                                ←
                               </button>
-                              <span className="pagination-info">
-                                {activityPage} / {activityTotalPages}
-                              </span>
+                              {getPaginationRange(activityPage, activityTotalPages).map((page, index) => (
+                                page === '...' ? (
+                                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                                ) : (
+                                  <button
+                                    key={page}
+                                    onClick={() => fetchActivityLogs(selectedUser.id, page)}
+                                    className={`pagination-number ${activityPage === page ? 'active' : ''}`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              ))}
                               <button
                                 onClick={() => fetchActivityLogs(selectedUser.id, Math.min(activityTotalPages, activityPage + 1))}
                                 disabled={activityPage >= activityTotalPages}
                                 className="pagination-btn"
                               >
-                                次へ
+                                →
                               </button>
                             </div>
                           )}
@@ -623,17 +670,27 @@ export default function UserManagementPage() {
                                 disabled={generationPage === 1}
                                 className="pagination-btn"
                               >
-                                前へ
+                                ←
                               </button>
-                              <span className="pagination-info">
-                                {generationPage} / {generationTotalPages}
-                              </span>
+                              {getPaginationRange(generationPage, generationTotalPages).map((page, index) => (
+                                page === '...' ? (
+                                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                                ) : (
+                                  <button
+                                    key={page}
+                                    onClick={() => fetchGenerationHistory(selectedUser.id, page)}
+                                    className={`pagination-number ${generationPage === page ? 'active' : ''}`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              ))}
                               <button
                                 onClick={() => fetchGenerationHistory(selectedUser.id, Math.min(generationTotalPages, generationPage + 1))}
                                 disabled={generationPage >= generationTotalPages}
                                 className="pagination-btn"
                               >
-                                次へ
+                                →
                               </button>
                             </div>
                           )}
