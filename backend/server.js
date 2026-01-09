@@ -615,20 +615,33 @@ app.delete('/api/users/:id/output-rules/:outputRuleId', authenticateToken, requi
 // ログイン履歴取得
 app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, page = 1, limit = 40 } = req.query;
+    const offset = (page - 1) * limit;
 
-    let query = 'SELECT * FROM login_logs';
+    let countQuery = 'SELECT COUNT(*) FROM login_logs';
+    let dataQuery = 'SELECT * FROM login_logs';
     let params = [];
 
     if (user_id) {
-      query += ' WHERE user_id = $1';
+      countQuery += ' WHERE user_id = $1';
+      dataQuery += ' WHERE user_id = $1';
       params.push(user_id);
     }
 
-    query += ' ORDER BY login_at DESC';
+    dataQuery += ' ORDER BY login_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    const dataParams = [...params, limit, offset];
 
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, params),
+      pool.query(dataQuery, dataParams)
+    ]);
+
+    res.json({
+      data: dataResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
   } catch (error) {
     console.error('Error fetching login logs:', error);
     res.status(500).json({ error: 'ログイン履歴の取得に失敗しました' });
@@ -638,20 +651,33 @@ app.get('/api/admin/login-logs', authenticateToken, requireAdminOrManager, async
 // 利用履歴取得
 app.get('/api/admin/activity-logs', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, page = 1, limit = 40 } = req.query;
+    const offset = (page - 1) * limit;
 
-    let query = 'SELECT * FROM activity_logs';
+    let countQuery = 'SELECT COUNT(*) FROM activity_logs';
+    let dataQuery = 'SELECT * FROM activity_logs';
     let params = [];
 
     if (user_id) {
-      query += ' WHERE user_id = $1';
+      countQuery += ' WHERE user_id = $1';
+      dataQuery += ' WHERE user_id = $1';
       params.push(user_id);
     }
 
-    query += ' ORDER BY created_at DESC';
+    dataQuery += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    const dataParams = [...params, limit, offset];
 
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, params),
+      pool.query(dataQuery, dataParams)
+    ]);
+
+    res.json({
+      data: dataResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
   } catch (error) {
     console.error('Error fetching activity logs:', error);
     res.status(500).json({ error: '利用履歴の取得に失敗しました' });
@@ -1294,12 +1320,23 @@ app.get('/api/admin/usage-stats', authenticateToken, requireAdmin, async (req, r
 // 自分の生成履歴取得
 app.get('/api/my-generation-history', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC',
-      [req.user.userId]
-    );
+    const { page = 1, limit = 40 } = req.query;
+    const offset = (page - 1) * limit;
 
-    res.json(result.rows);
+    const [countResult, dataResult] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM generation_history WHERE user_id = $1', [req.user.userId]),
+      pool.query(
+        'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
+        [req.user.userId, limit, offset]
+      )
+    ]);
+
+    res.json({
+      data: dataResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
   } catch (error) {
     console.error('Error fetching generation history:', error);
     res.status(500).json({ error: '生成履歴の取得に失敗しました' });
@@ -1330,20 +1367,33 @@ app.delete('/api/my-generation-history/:id', authenticateToken, async (req, res)
 // 管理者用：特定ユーザーの生成履歴取得
 app.get('/api/admin/generation-history', authenticateToken, requireAdminOrManager, async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, page = 1, limit = 40 } = req.query;
+    const offset = (page - 1) * limit;
 
-    let query = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
+    let countQuery = 'SELECT COUNT(*) FROM generation_history';
+    let dataQuery = 'SELECT id, template_name, job_type, industry, student_profile, generated_comment, created_at FROM generation_history';
     let params = [];
 
     if (user_id) {
-      query += ' WHERE user_id = $1';
+      countQuery += ' WHERE user_id = $1';
+      dataQuery += ' WHERE user_id = $1';
       params.push(user_id);
     }
 
-    query += ' ORDER BY created_at DESC';
+    dataQuery += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    const dataParams = [...params, limit, offset];
 
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, params),
+      pool.query(dataQuery, dataParams)
+    ]);
+
+    res.json({
+      data: dataResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
   } catch (error) {
     console.error('Error fetching generation history:', error);
     res.status(500).json({ error: '生成履歴の取得に失敗しました' });

@@ -28,12 +28,14 @@ export default function MyPage() {
 
   // ページネーション用の状態
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 40;
 
   useEffect(() => {
     document.title = 'マイページ - Athena Scout';
     fetchUserInfo();
-    fetchGenerationHistory();
+    fetchGenerationHistory(1);
   }, []);
 
   const fetchUserInfo = async () => {
@@ -56,11 +58,16 @@ export default function MyPage() {
     }
   };
 
-  const fetchGenerationHistory = async () => {
+  const fetchGenerationHistory = async (page = 1) => {
     setHistoryLoading(true);
     try {
-      const response = await apiClient.get('/api/my-generation-history');
-      setGenerationHistory(response.data);
+      const response = await apiClient.get('/api/my-generation-history', {
+        params: { page, limit: itemsPerPage }
+      });
+      setGenerationHistory(response.data.data);
+      setTotalCount(response.data.total);
+      setTotalPages(Math.ceil(response.data.total / itemsPerPage));
+      setCurrentPage(page);
     } catch (error) {
       console.error('Error fetching generation history:', error);
     } finally {
@@ -150,7 +157,7 @@ export default function MyPage() {
     try {
       await apiClient.delete(`/api/my-generation-history/${historyId}`);
       setMessage('履歴を削除しました');
-      fetchGenerationHistory();
+      fetchGenerationHistory(currentPage);
       if (selectedHistory?.id === historyId) {
         handleCloseHistoryModal();
       }
@@ -238,7 +245,7 @@ export default function MyPage() {
           <div className="generation-history-section">
             <div className="section-header">
               <h2>生成メッセージ履歴</h2>
-              <span className="history-count">全{generationHistory.length}件</span>
+              <span className="history-count">全{totalCount}件</span>
             </div>
 
             {historyLoading ? (
@@ -248,54 +255,52 @@ export default function MyPage() {
             ) : (
               <>
                 <div className="history-list">
-                  {generationHistory
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((history) => (
-                      <div key={history.id} className="history-item">
-                        <div className="history-header">
-                          <div className="history-meta">
-                            <span className="history-template-name">{history.template_name || '未設定'}</span>
-                          </div>
-                          <span className="history-date">
-                            {new Date(history.created_at).toLocaleString('ja-JP')}
-                          </span>
+                  {generationHistory.map((history) => (
+                    <div key={history.id} className="history-item">
+                      <div className="history-header">
+                        <div className="history-meta">
+                          <span className="history-template-name">{history.template_name || '未設定'}</span>
                         </div>
-                        <div className="history-preview">
-                          {history.generated_comment.substring(0, 100)}
-                          {history.generated_comment.length > 100 && '...'}
-                        </div>
-                        <div className="history-actions">
-                          <button
-                            onClick={() => handleShowHistoryDetail(history)}
-                            className="btn-view-detail"
-                          >
-                            詳細
-                          </button>
-                          {/* <button
-                            onClick={() => handleDeleteHistory(history.id)}
-                            className="btn-delete-history"
-                          >
-                            削除
-                          </button> */}
-                        </div>
+                        <span className="history-date">
+                          {new Date(history.created_at).toLocaleString('ja-JP')}
+                        </span>
                       </div>
-                    ))}
+                      <div className="history-preview">
+                        {history.generated_comment.substring(0, 100)}
+                        {history.generated_comment.length > 100 && '...'}
+                      </div>
+                      <div className="history-actions">
+                        <button
+                          onClick={() => handleShowHistoryDetail(history)}
+                          className="btn-view-detail"
+                        >
+                          詳細
+                        </button>
+                        {/* <button
+                          onClick={() => handleDeleteHistory(history.id)}
+                          className="btn-delete-history"
+                        >
+                          削除
+                        </button> */}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {generationHistory.length > itemsPerPage && (
+                {totalPages > 1 && (
                   <div className="pagination">
                     <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      onClick={() => fetchGenerationHistory(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
                       className="pagination-btn"
                     >
                       前へ
                     </button>
                     <span className="pagination-info">
-                      {currentPage} / {Math.ceil(generationHistory.length / itemsPerPage)}
+                      {currentPage} / {totalPages}
                     </span>
                     <button
-                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(generationHistory.length / itemsPerPage), prev + 1))}
-                      disabled={currentPage >= Math.ceil(generationHistory.length / itemsPerPage)}
+                      onClick={() => fetchGenerationHistory(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage >= totalPages}
                       className="pagination-btn"
                     >
                       次へ

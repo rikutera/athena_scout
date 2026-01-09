@@ -33,8 +33,12 @@ export default function UserManagementPage() {
   const [logsLoading, setLogsLoading] = useState(false);
 
   // ページネーション用の状態
+  const [loginPage, setLoginPage] = useState(1);
+  const [loginTotalPages, setLoginTotalPages] = useState(1);
   const [activityPage, setActivityPage] = useState(1);
+  const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [generationPage, setGenerationPage] = useState(1);
+  const [generationTotalPages, setGenerationTotalPages] = useState(1);
   const itemsPerPage = 40;
 
   // 生成履歴詳細モーダル
@@ -179,22 +183,16 @@ export default function UserManagementPage() {
     setShowLogsModal(true);
     setActiveTab('login');
     setLogsLoading(true);
+    setLoginPage(1);
+    setActivityPage(1);
+    setGenerationPage(1);
 
     try {
-      const loginResponse = await apiClient.get('/api/admin/login-logs', {
-        params: { user_id: user.id }
-      });
-      setLoginLogs(loginResponse.data);
-
-      const activityResponse = await apiClient.get('/api/admin/activity-logs', {
-        params: { user_id: user.id }
-      });
-      setActivityLogs(activityResponse.data);
-
-      const generationResponse = await apiClient.get('/api/admin/generation-history', {
-        params: { user_id: user.id }
-      });
-      setGenerationHistory(generationResponse.data);
+      await Promise.all([
+        fetchLoginLogs(user.id, 1),
+        fetchActivityLogs(user.id, 1),
+        fetchGenerationHistory(user.id, 1)
+      ]);
     } catch (error) {
       console.error('Error fetching logs:', error);
       setError('履歴の取得に失敗しました');
@@ -203,12 +201,40 @@ export default function UserManagementPage() {
     }
   };
 
+  const fetchLoginLogs = async (userId, page = 1) => {
+    const response = await apiClient.get('/api/admin/login-logs', {
+      params: { user_id: userId, page, limit: itemsPerPage }
+    });
+    setLoginLogs(response.data.data);
+    setLoginTotalPages(Math.ceil(response.data.total / itemsPerPage));
+    setLoginPage(page);
+  };
+
+  const fetchActivityLogs = async (userId, page = 1) => {
+    const response = await apiClient.get('/api/admin/activity-logs', {
+      params: { user_id: userId, page, limit: itemsPerPage }
+    });
+    setActivityLogs(response.data.data);
+    setActivityTotalPages(Math.ceil(response.data.total / itemsPerPage));
+    setActivityPage(page);
+  };
+
+  const fetchGenerationHistory = async (userId, page = 1) => {
+    const response = await apiClient.get('/api/admin/generation-history', {
+      params: { user_id: userId, page, limit: itemsPerPage }
+    });
+    setGenerationHistory(response.data.data);
+    setGenerationTotalPages(Math.ceil(response.data.total / itemsPerPage));
+    setGenerationPage(page);
+  };
+
   const handleCloseLogsModal = () => {
     setShowLogsModal(false);
     setSelectedUser(null);
     setLoginLogs([]);
     setActivityLogs([]);
     setGenerationHistory([]);
+    setLoginPage(1);
     setActivityPage(1);
     setGenerationPage(1);
   };
@@ -443,24 +469,47 @@ export default function UserManagementPage() {
                       {loginLogs.length === 0 ? (
                         <p>ログイン履歴がありません</p>
                       ) : (
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>ログイン日時</th>
-                              <th>IPアドレス</th>
-                              <th>ユーザーエージェント</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {loginLogs.map((log) => (
-                              <tr key={log.id}>
-                                <td>{new Date(log.login_at).toLocaleString('ja-JP')}</td>
-                                <td>{log.ip_address}</td>
-                                <td className="user-agent">{log.user_agent}</td>
+                        <>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>ログイン日時</th>
+                                <th>IPアドレス</th>
+                                <th>ユーザーエージェント</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {loginLogs.map((log) => (
+                                <tr key={log.id}>
+                                  <td>{new Date(log.login_at).toLocaleString('ja-JP')}</td>
+                                  <td>{log.ip_address}</td>
+                                  <td className="user-agent">{log.user_agent}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {loginTotalPages > 1 && (
+                            <div className="pagination">
+                              <button
+                                onClick={() => fetchLoginLogs(selectedUser.id, Math.max(1, loginPage - 1))}
+                                disabled={loginPage === 1}
+                                className="pagination-btn"
+                              >
+                                前へ
+                              </button>
+                              <span className="pagination-info">
+                                {loginPage} / {loginTotalPages}
+                              </span>
+                              <button
+                                onClick={() => fetchLoginLogs(selectedUser.id, Math.min(loginTotalPages, loginPage + 1))}
+                                disabled={loginPage >= loginTotalPages}
+                                className="pagination-btn"
+                              >
+                                次へ
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -479,31 +528,29 @@ export default function UserManagementPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {activityLogs
-                                .slice((activityPage - 1) * itemsPerPage, activityPage * itemsPerPage)
-                                .map((log) => (
-                                  <tr key={log.id}>
-                                    <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
-                                    <td>{log.action}</td>
-                                  </tr>
-                                ))}
+                              {activityLogs.map((log) => (
+                                <tr key={log.id}>
+                                  <td>{new Date(log.created_at).toLocaleString('ja-JP')}</td>
+                                  <td>{log.action}</td>
+                                </tr>
+                              ))}
                             </tbody>
                           </table>
-                          {activityLogs.length > itemsPerPage && (
+                          {activityTotalPages > 1 && (
                             <div className="pagination">
                               <button
-                                onClick={() => setActivityPage(prev => Math.max(1, prev - 1))}
+                                onClick={() => fetchActivityLogs(selectedUser.id, Math.max(1, activityPage - 1))}
                                 disabled={activityPage === 1}
                                 className="pagination-btn"
                               >
                                 前へ
                               </button>
                               <span className="pagination-info">
-                                {activityPage} / {Math.ceil(activityLogs.length / itemsPerPage)}
+                                {activityPage} / {activityTotalPages}
                               </span>
                               <button
-                                onClick={() => setActivityPage(prev => Math.min(Math.ceil(activityLogs.length / itemsPerPage), prev + 1))}
-                                disabled={activityPage >= Math.ceil(activityLogs.length / itemsPerPage)}
+                                onClick={() => fetchActivityLogs(selectedUser.id, Math.min(activityTotalPages, activityPage + 1))}
+                                disabled={activityPage >= activityTotalPages}
                                 className="pagination-btn"
                               >
                                 次へ
@@ -531,43 +578,41 @@ export default function UserManagementPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {generationHistory
-                                .slice((generationPage - 1) * itemsPerPage, generationPage * itemsPerPage)
-                                .map((history) => (
-                                  <tr key={history.id}>
-                                    <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
-                                    <td>{history.template_name || '未設定'}</td>
-                                    <td className="message-preview">
-                                      {history.generated_comment.substring(0, 50)}
-                                      {history.generated_comment.length > 50 && '...'}
-                                    </td>
-                                    <td>
-                                      <button
-                                        onClick={() => handleShowDetail(history)}
-                                        className="btn-view-detail-small"
-                                      >
-                                        詳細
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
+                              {generationHistory.map((history) => (
+                                <tr key={history.id}>
+                                  <td>{new Date(history.created_at).toLocaleString('ja-JP')}</td>
+                                  <td>{history.template_name || '未設定'}</td>
+                                  <td className="message-preview">
+                                    {history.generated_comment.substring(0, 50)}
+                                    {history.generated_comment.length > 50 && '...'}
+                                  </td>
+                                  <td>
+                                    <button
+                                      onClick={() => handleShowDetail(history)}
+                                      className="btn-view-detail-small"
+                                    >
+                                      詳細
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
                             </tbody>
                           </table>
-                          {generationHistory.length > itemsPerPage && (
+                          {generationTotalPages > 1 && (
                             <div className="pagination">
                               <button
-                                onClick={() => setGenerationPage(prev => Math.max(1, prev - 1))}
+                                onClick={() => fetchGenerationHistory(selectedUser.id, Math.max(1, generationPage - 1))}
                                 disabled={generationPage === 1}
                                 className="pagination-btn"
                               >
                                 前へ
                               </button>
                               <span className="pagination-info">
-                                {generationPage} / {Math.ceil(generationHistory.length / itemsPerPage)}
+                                {generationPage} / {generationTotalPages}
                               </span>
                               <button
-                                onClick={() => setGenerationPage(prev => Math.min(Math.ceil(generationHistory.length / itemsPerPage), prev + 1))}
-                                disabled={generationPage >= Math.ceil(generationHistory.length / itemsPerPage)}
+                                onClick={() => fetchGenerationHistory(selectedUser.id, Math.min(generationTotalPages, generationPage + 1))}
+                                disabled={generationPage >= generationTotalPages}
                                 className="pagination-btn"
                               >
                                 次へ
