@@ -202,30 +202,48 @@ export default function UserManagementPage() {
   };
 
   const fetchLoginLogs = async (userId, page = 1) => {
-    const response = await apiClient.get('/api/admin/login-logs', {
-      params: { user_id: userId, page, limit: itemsPerPage }
-    });
-    setLoginLogs(response.data.data);
-    setLoginTotalPages(Math.ceil(response.data.total / itemsPerPage));
-    setLoginPage(page);
+    try {
+      const response = await apiClient.get('/api/admin/login-logs', {
+        params: { user_id: userId, page, limit: itemsPerPage }
+      });
+      setLoginLogs(response.data.data || []);
+      setLoginTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
+      setLoginPage(page);
+    } catch (error) {
+      console.error('Error fetching login logs:', error);
+      setLoginLogs([]);
+      setLoginTotalPages(1);
+    }
   };
 
   const fetchActivityLogs = async (userId, page = 1) => {
-    const response = await apiClient.get('/api/admin/activity-logs', {
-      params: { user_id: userId, page, limit: itemsPerPage }
-    });
-    setActivityLogs(response.data.data);
-    setActivityTotalPages(Math.ceil(response.data.total / itemsPerPage));
-    setActivityPage(page);
+    try {
+      const response = await apiClient.get('/api/admin/activity-logs', {
+        params: { user_id: userId, page, limit: itemsPerPage }
+      });
+      setActivityLogs(response.data.data || []);
+      setActivityTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
+      setActivityPage(page);
+    } catch (error) {
+      console.error('Error fetching activity logs:', error);
+      setActivityLogs([]);
+      setActivityTotalPages(1);
+    }
   };
 
   const fetchGenerationHistory = async (userId, page = 1) => {
-    const response = await apiClient.get('/api/admin/generation-history', {
-      params: { user_id: userId, page, limit: itemsPerPage }
-    });
-    setGenerationHistory(response.data.data);
-    setGenerationTotalPages(Math.ceil(response.data.total / itemsPerPage));
-    setGenerationPage(page);
+    try {
+      const response = await apiClient.get('/api/admin/generation-history', {
+        params: { user_id: userId, page, limit: itemsPerPage }
+      });
+      setGenerationHistory(response.data.data || []);
+      setGenerationTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
+      setGenerationPage(page);
+    } catch (error) {
+      console.error('Error fetching generation history:', error);
+      setGenerationHistory([]);
+      setGenerationTotalPages(1);
+    }
   };
 
   const handleCloseLogsModal = () => {
