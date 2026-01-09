@@ -64,12 +64,15 @@ export default function MyPage() {
       const response = await apiClient.get('/api/my-generation-history', {
         params: { page, limit: itemsPerPage }
       });
-      setGenerationHistory(response.data.data);
-      setTotalCount(response.data.total);
-      setTotalPages(Math.ceil(response.data.total / itemsPerPage));
+      setGenerationHistory(response.data.data || []);
+      setTotalCount(response.data.total || 0);
+      setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
       setCurrentPage(page);
     } catch (error) {
       console.error('Error fetching generation history:', error);
+      setGenerationHistory([]);
+      setTotalCount(0);
+      setTotalPages(1);
     } finally {
       setHistoryLoading(false);
     }
